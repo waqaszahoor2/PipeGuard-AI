@@ -45,7 +45,7 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "X-CSRF-Token", "X-Request-ID"],
+    allow_headers=["Content-Type", "X-CSRF-Token", "X-Request-ID", "Accept", "Authorization"],
 )
 app.add_middleware(InMemoryRateLimitMiddleware, limit=120, window_seconds=60)
 app.add_middleware(BodyLimitMiddleware, max_bytes=settings.max_csv_bytes + 200_000)

@@ -160,6 +160,8 @@ class GeocodeResult(BaseModel):
 class GeocodeSearchResponse(BaseModel):
     results: list[GeocodeResult]
     source: str = "OpenStreetMap Nominatim"
+    query: str = ""
+    cached: bool = False
 
 
 class GlobalPipelineProperties(BaseModel):

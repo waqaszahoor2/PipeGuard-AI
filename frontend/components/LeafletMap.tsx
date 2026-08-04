@@ -75,6 +75,7 @@ export function LeafletMap() {
         const map = L.map(elementRef.current, {
           zoomControl: true,
           attributionControl: true,
+          worldCopyJump: true,
         }).setView([51.064, -114.198], 13);
 
         mapRef.current = map;
@@ -194,7 +195,7 @@ export function LeafletMap() {
     setMapMoved(false);
 
     try {
-      const url = `/global-pipelines?south=${bbox.south.toFixed(4)}&west=${bbox.west.toFixed(4)}&north=${bbox.north.toFixed(4)}&east=${bbox.east.toFixed(4)}&substance=${encodeURIComponent(substance)}`;
+      const url = `/api/v1/global-pipelines?south=${bbox.south.toFixed(4)}&west=${bbox.west.toFixed(4)}&north=${bbox.north.toFixed(4)}&east=${bbox.east.toFixed(4)}&substance=${encodeURIComponent(substance)}`;
       const data = await apiFetch<GlobalPipelineGeoJSON>(url);
       setGlobalMetadata(data.metadata);
 

@@ -46,14 +46,19 @@ export function GlobalSearchControl({
 
     try {
       const data = await apiFetch<GeocodeSearchResponse>(
-        `/geocode/search?q=${encodeURIComponent(q)}`
+        `/api/v1/geocode/search?q=${encodeURIComponent(q)}`
       );
-      setResults(data.results);
-      if (data.results.length === 1) {
-        onSelectResult(data.results[0]);
+      const resList = Array.isArray(data?.results) ? data.results : [];
+      setResults(resList);
+      if (resList.length === 1) {
+        onSelectResult(resList[0]);
       }
-    } catch {
-      setError("Location search is temporarily unavailable. Try again.");
+    } catch (err: unknown) {
+      if (err instanceof Error && "message" in err) {
+        setError(err.message);
+      } else {
+        setError("Location search is temporarily unavailable. Try again.");
+      }
     } finally {
       setLoading(false);
     }

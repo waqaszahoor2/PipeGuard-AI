@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     access_session_minutes: int = Field(default=30, ge=5, le=240)
     login_rate_limit_per_minute: int = Field(default=10, ge=1, le=100)
     geocoder_base_url: str = "https://nominatim.openstreetmap.org"
+    geocoder_user_agent: str = "PipeGuardAI/1.0 (contact: admin@pipeguard.local)"
+    geocoder_contact_email: str = "admin@pipeguard.local"
+    geocoder_timeout_seconds: int = Field(default=12, ge=2, le=30)
     overpass_api_url: str = "https://overpass-api.de/api/interpreter"
     global_pipeline_max_results: int = Field(default=1000, ge=10, le=5000)
     global_pipeline_max_latitude_span: float = Field(default=2.0, ge=0.1, le=10.0)

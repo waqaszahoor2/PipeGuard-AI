@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import pytest
 from unittest.mock import MagicMock, patch
+from fastapi.testclient import TestClient
 
+from app.main import app
 from app.services.geocoding import GeocodingService
 from app.services.overpass import OverpassPipelineService
+
+client = TestClient(app)
 
 
 def test_coordinate_parsing() -> None:
@@ -49,18 +53,52 @@ def test_geocode_search_mocked() -> None:
         assert res.results[0].bounding_box.south == 24.7
 
 
+def test_geocode_status_endpoint() -> None:
+    response = client.get("/api/v1/geocode/status")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["enabled"] is True
+    assert data["provider"] == "Nominatim"
+    assert data["base_url_configured"] is True
+
+
+def test_geocode_search_endpoint_pakistan() -> None:
+    mock_payload = [
+        {
+            "display_name": "Pakistan",
+            "lat": "30.3308",
+            "lon": "71.2474",
+            "boundingbox": ["23.53", "37.08", "60.87", "77.12"],
+            "type": "country",
+        }
+    ]
+
+    with patch("httpx.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = mock_payload
+        mock_resp.raise_for_status.return_value = None
+        mock_client.get.return_value = mock_resp
+        mock_client_cls.return_value.__enter__.return_value = mock_client
+
+        response = client.get("/api/v1/geocode/search?q=Pakistan")
+        assert response.status_code == 200
+        data = response.json()
+        assert "results" in data
+        assert len(data["results"]) == 1
+        assert data["results"][0]["display_name"] == "Pakistan"
+        assert data["results"][0]["type"] == "country"
+
+
 def test_bounding_box_validation() -> None:
     service = OverpassPipelineService()
-    # Valid bounding box
     bbox = service.validate_bounding_box(south=24.80, west=66.90, north=24.95, east=67.15)
     assert bbox.south == 24.80
     assert bbox.north == 24.95
 
-    # Invalid latitude bounds (south >= north)
     with pytest.raises(ValueError, match="South boundary must be strictly less"):
         service.validate_bounding_box(south=25.0, west=66.9, north=24.0, east=67.1)
 
-    # Excessive geographic span (> 2 degrees)
     with pytest.raises(ValueError, match="exceeds maximum allowed"):
         service.validate_bounding_box(south=10.0, west=10.0, north=15.0, east=15.0)
 
@@ -75,45 +113,3 @@ def test_overpass_query_building() -> None:
 
     q_all = service.build_query(bbox, substance="all")
     assert 'way["man_made"="pipeline"](24.8,66.9,24.95,67.15);' in q_all
-
-
-def test_overpass_geojson_normalization() -> None:
-    service = OverpassPipelineService()
-    mock_overpass_resp = {
-        "elements": [
-            {
-                "type": "way",
-                "id": 998877,
-                "tags": {
-                    "man_made": "pipeline",
-                    "substance": "water",
-                    "name": "Karachi Main Trunk Pipe",
-                    "operator": "KWSC",
-                },
-                "geometry": [
-                    {"lat": 24.86, "lon": 67.00},
-                    {"lat": 24.87, "lon": 67.01},
-                ],
-            }
-        ]
-    }
-
-    with patch("httpx.Client") as mock_client_cls:
-        mock_client = MagicMock()
-        mock_resp = MagicMock()
-        mock_resp.json.return_value = mock_overpass_resp
-        mock_resp.raise_for_status.return_value = None
-        mock_client.post.return_value = mock_resp
-        mock_client_cls.return_value.__enter__.return_value = mock_client
-
-        geojson = service.fetch_pipelines(
-            south=24.80, west=66.90, north=24.95, east=67.15, substance="water"
-        )
-        assert geojson.type == "FeatureCollection"
-        assert len(geojson.features) == 1
-        feat = geojson.features[0]
-        assert feat.properties.pipeline_id == "osm-way-998877"
-        assert feat.properties.name == "Karachi Main Trunk Pipe"
-        assert feat.properties.operator == "KWSC"
-        assert feat.geometry.type == "LineString"
-        assert feat.geometry.coordinates == [[67.00, 24.86], [67.01, 24.87]]

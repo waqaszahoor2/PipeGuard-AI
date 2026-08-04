@@ -409,6 +409,17 @@ def me(user: CurrentUser = Depends(get_current_user)) -> UserResponse:
     return UserResponse(id=user.id, email=user.email, role=user.role)
 
 
+@router.get("/geocode/status")
+def geocode_status() -> dict[str, Any]:
+    return {
+        "enabled": True,
+        "provider": "Nominatim",
+        "base_url_configured": bool(settings.geocoder_base_url),
+        "user_agent_configured": bool(settings.geocoder_user_agent),
+        "cache_enabled": True,
+    }
+
+
 @router.get("/geocode/search", response_model=GeocodeSearchResponse)
 def geocode_search(q: str) -> GeocodeSearchResponse:
     if not q or not q.strip():
