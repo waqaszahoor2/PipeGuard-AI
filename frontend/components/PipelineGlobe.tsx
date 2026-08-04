@@ -71,6 +71,9 @@ function applyProjection(map: maplibregl.Map, projType: "globe" | "mercator") {
 const DEFAULT_STYLE_SPEC: maplibregl.StyleSpecification = {
   version: 8,
   name: "PipeGuard Globe Style",
+  projection: {
+    type: "globe",
+  },
   sources: {
     "osm-raster-tiles": {
       type: "raster",
@@ -148,18 +151,56 @@ export function PipelineGlobe() {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: styleUrl,
-      center: [0, 20],
-      zoom: 1.4,
+      center: [0, 15],
+      zoom: 1.2,
       minZoom: 0,
       maxZoom: 19,
+      bearing: 0,
+      pitch: 0,
       attributionControl: false,
+      antialias: true,
+      dragPan: true,
+      dragRotate: true,
+      scrollZoom: {
+        around: "center",
+      },
+      touchZoomRotate: {
+        around: "center",
+      },
+      touchPitch: true,
+      doubleClickZoom: true,
+      keyboard: true,
+      cooperativeGestures: false,
     });
 
     mapRef.current = map;
 
-    map.on("load", () => {
-      // Set projection safely
+    // Explicitly enable handlers with momentum
+    try {
+      map.dragPan.enable({
+        linearity: 0.2,
+        maxSpeed: 1800,
+        deceleration: 2600,
+      });
+      map.dragRotate.enable();
+      map.scrollZoom.enable({ around: "center" });
+      map.touchZoomRotate.enable({ around: "center" });
+      map.touchZoomRotate.enableRotation();
+      map.doubleClickZoom.enable();
+      map.keyboard.enable();
+    } catch {
+      // Fallback if handler configuration is constrained
+    }
+
+    // Apply projection on style.load
+    const applyGlobeProjection = () => {
       applyProjection(map, projection);
+    };
+
+    map.on("style.load", applyGlobeProjection);
+
+    map.on("load", () => {
+      applyGlobeProjection();
 
       // Add Sources and Layers for Pipelines
       if (!map.getSource("pipeline-source")) {
@@ -223,7 +264,7 @@ export function PipelineGlobe() {
         map.getCanvas().style.cursor = "pointer";
       });
       map.on("mouseleave", "pipeline-layer", () => {
-        map.getCanvas().style.cursor = "";
+        map.getCanvas().style.cursor = "grab";
       });
     });
 
@@ -388,6 +429,7 @@ export function PipelineGlobe() {
     setDataMode("global");
     if (!mapRef.current) return;
     const map = mapRef.current;
+    map.stop();
 
     if (searchMarkerRef.current) {
       searchMarkerRef.current.remove();
@@ -403,11 +445,11 @@ export function PipelineGlobe() {
       .addTo(map);
 
     const bbox = result.bounding_box;
-    let targetZoom = 10;
-    if (result.type === "country") targetZoom = 4;
-    else if (result.type === "state" || result.type === "administrative") targetZoom = 6;
-    else if (result.type === "city" || result.type === "town") targetZoom = 10;
-    else if (result.type === "coordinate") targetZoom = 12;
+    let targetZoom = 9;
+    if (result.type === "country") targetZoom = 3;
+    else if (result.type === "state" || result.type === "administrative") targetZoom = 5;
+    else if (result.type === "city" || result.type === "town") targetZoom = 9;
+    else if (result.type === "coordinate") targetZoom = 13;
 
     map.flyTo({
       center: [result.longitude, result.latitude],
@@ -422,13 +464,16 @@ export function PipelineGlobe() {
   // Reset Globe to Full Earth View
   function handleResetGlobe() {
     if (!mapRef.current) return;
-    mapRef.current.flyTo({
-      center: [0, 20],
-      zoom: 1.4,
+    mapRef.current.stop();
+    applyProjection(mapRef.current, "globe");
+    setProjection("globe");
+    mapRef.current.easeTo({
+      center: [0, 15],
+      zoom: 1.2,
       bearing: 0,
       pitch: 0,
-      duration: 1800,
-      essential: true,
+      duration: 1200,
+      essential: false,
     });
   }
 
@@ -552,19 +597,19 @@ export function PipelineGlobe() {
 
       {/* Main Grid: Map + Right Details Sidebar */}
       <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
-        <div className="card relative overflow-hidden p-2">
+        <div className="card relative min-h-[540px] w-full overflow-hidden rounded-2xl bg-gradient-to-b from-slate-950 via-[#071426] to-slate-950 p-2 shadow-2xl">
           {/* Action Overlay Controls */}
           {dataMode === "global" && (
-            <div className="absolute left-4 top-4 z-20 flex flex-wrap items-center gap-2">
+            <div className="pointer-events-none absolute left-4 top-4 z-20 flex flex-wrap items-center gap-2">
               <button
                 onClick={loadGlobalPipelinesForViewport}
                 disabled={loading}
-                className="inline-flex items-center gap-2 rounded-xl bg-slate-900/90 px-3.5 py-2 text-xs font-extrabold text-white backdrop-blur-md transition hover:bg-slate-900 shadow-lg"
+                className="pointer-events-auto inline-flex items-center gap-2 rounded-xl bg-slate-900/90 px-3.5 py-2 text-xs font-extrabold text-white backdrop-blur-md transition hover:bg-slate-900 shadow-lg"
               >
                 {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
                 <span>Search Pipelines in This Area</span>
               </button>
-              {mapMoved && <span className="rounded-lg bg-orange-500/90 px-2.5 py-1 text-[11px] font-bold text-white shadow-md">Map moved. Click to search area.</span>}
+              {mapMoved && <span className="pointer-events-none rounded-lg bg-orange-500/90 px-2.5 py-1 text-[11px] font-bold text-white shadow-md">Map moved. Click to search area.</span>}
             </div>
           )}
 
@@ -572,12 +617,17 @@ export function PipelineGlobe() {
           {error ? (
             <div className="grid min-h-[540px] place-items-center text-sm font-semibold text-red-600">{error}</div>
           ) : (
-            <div ref={containerRef} className="min-h-[540px] w-full rounded-xl" aria-label="3D Earth Globe map" />
+            <div
+              ref={containerRef}
+              className="min-h-[540px] w-full rounded-xl bg-transparent outline-none cursor-grab active:cursor-grabbing"
+              aria-label="3D Earth Globe map"
+              style={{ touchAction: "none" }}
+            />
           )}
 
           {/* Zoom Warning Overlay */}
           {dataMode === "global" && zoomWarning && (
-            <div className="absolute bottom-4 left-4 right-4 z-20 flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50/95 p-3 text-xs font-bold text-orange-950 shadow-lg dark:border-orange-900 dark:bg-orange-950/95 dark:text-orange-100">
+            <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-20 flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50/95 p-3 text-xs font-bold text-orange-950 shadow-lg dark:border-orange-900 dark:bg-orange-950/95 dark:text-orange-100">
               <ZoomIn className="h-4 w-4 shrink-0" />
               <span>Rotate the globe and zoom into a city to search publicly mapped pipelines (minimum zoom level 8).</span>
             </div>
