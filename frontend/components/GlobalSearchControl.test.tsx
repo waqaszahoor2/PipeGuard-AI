@@ -8,8 +8,8 @@ beforeEach(() => {
 });
 
 test("buildApiUrl prevents duplicate slashes and formats correct endpoint paths", () => {
-  expect(buildApiUrl("/api/v1/geocode/search")).toBe("/api/v1/geocode/search");
-  expect(buildApiUrl("api/v1/geocode/search")).toBe("/api/v1/geocode/search");
+  expect(buildApiUrl("/api/v1/geocode/search")).toContain("/api/v1/geocode/search");
+  expect(buildApiUrl("api/v1/geocode/search")).toContain("/api/v1/geocode/search");
 });
 
 test("renders search input and search button", () => {

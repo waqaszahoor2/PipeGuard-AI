@@ -614,16 +614,25 @@ export function PipelineGlobe() {
             </div>
           )}
 
-          {/* Map Container */}
-          {error ? (
-            <div className="grid min-h-[540px] place-items-center text-sm font-semibold text-red-600">{error}</div>
-          ) : (
-            <div
-              ref={containerRef}
-              className="min-h-[540px] w-full rounded-xl bg-transparent outline-none cursor-grab active:cursor-grabbing"
-              aria-label="3D Earth Globe map"
-              style={{ touchAction: "none" }}
-            />
+          {/* Map Container - Always Mounted */}
+          <div
+            ref={containerRef}
+            className="min-h-[540px] w-full rounded-xl bg-transparent outline-none cursor-grab active:cursor-grabbing"
+            aria-label="3D Earth Globe map"
+            style={{ touchAction: "none" }}
+          />
+
+          {/* Non-blocking API Notification Overlay */}
+          {error && (
+            <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-20 flex items-center justify-between rounded-xl border border-amber-900/60 bg-slate-900/95 p-3 text-xs font-bold text-amber-200 shadow-2xl backdrop-blur-md">
+              <span>{error} You can still freely drag, rotate and explore the 3D Earth Globe.</span>
+              <button
+                onClick={() => setError(null)}
+                className="pointer-events-auto shrink-0 rounded-lg bg-amber-900/80 px-2.5 py-1 text-[11px] font-extrabold text-white hover:bg-amber-800"
+              >
+                Dismiss
+              </button>
+            </div>
           )}
         </div>
 

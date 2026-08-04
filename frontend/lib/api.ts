@@ -5,6 +5,9 @@ export const API_BASE = API_BASE_URL; // Backward compatibility alias
 export function buildApiUrl(path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   if (!API_BASE_URL) {
+    if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+      return `http://127.0.0.1:8000${normalizedPath}`;
+    }
     return normalizedPath;
   }
   return `${API_BASE_URL}${normalizedPath}`;
@@ -63,7 +66,7 @@ export async function apiFetch<T>(
 
       if (response.status === 404) {
         code = "NOT_FOUND";
-        message = "Endpoint or API base URL is wrong.";
+        message = "Global pipeline API endpoint is unavailable or base URL is unconfigured.";
       } else if (response.status === 429) {
         code = "RATE_LIMITED";
         message = "Location search is temporarily busy. Try again shortly.";
