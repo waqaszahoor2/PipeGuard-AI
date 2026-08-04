@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { Info, Loader2, RefreshCw, ZoomIn, Globe, Map, RotateCw, RotateCcw } from "lucide-react";
+import { Info, Loader2, RefreshCw, Globe, Map, RotateCw, RotateCcw } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { DataInfoModal } from "@/components/DataInfoModal";
 import { GeocodeResult, GlobalSearchControl } from "@/components/GlobalSearchControl";
@@ -95,7 +95,7 @@ const DEFAULT_STYLE_SPEC: maplibregl.StyleSpecification = {
       type: "raster",
       source: "osm-raster-tiles",
       minzoom: 0,
-      maxzoom: 19,
+      maxzoom: 22,
     },
   ],
 };
@@ -119,7 +119,6 @@ export function PipelineGlobe() {
 
   // Status & loading
   const [loading, setLoading] = useState<boolean>(false);
-  const [zoomWarning, setZoomWarning] = useState<boolean>(false);
   const [mapMoved, setMapMoved] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [infoModalOpen, setInfoModalOpen] = useState<boolean>(false);
@@ -136,7 +135,7 @@ export function PipelineGlobe() {
     }
   }, []);
 
-  // Initialize MapLibre GL JS Map
+  // Initialize MapLibre GL JS Map with unrestricted 3D navigation
   useEffect(() => {
     if (!hasWebGLSupport()) {
       setWebGlSupported(false);
@@ -154,13 +153,16 @@ export function PipelineGlobe() {
       center: [0, 15],
       zoom: 1.2,
       minZoom: 0,
-      maxZoom: 19,
+      maxZoom: 22,
       bearing: 0,
       pitch: 0,
+      maxPitch: 85,
+      minPitch: 0,
       attributionControl: false,
       antialias: true,
       dragPan: true,
       dragRotate: true,
+      pitchWithRotate: true,
       scrollZoom: {
         around: "center",
       },
@@ -175,7 +177,7 @@ export function PipelineGlobe() {
 
     mapRef.current = map;
 
-    // Explicitly enable handlers with momentum
+    // Explicitly enable handlers with smooth momentum
     try {
       map.dragPan.enable({
         linearity: 0.2,
@@ -276,7 +278,6 @@ export function PipelineGlobe() {
     map.on("dragstart", () => { userInteractingRef.current = true; });
     map.on("moveend", () => {
       setMapMoved(true);
-      setZoomWarning(map.getZoom() < (parseInt(process.env.NEXT_PUBLIC_PIPELINE_MIN_QUERY_ZOOM || "8", 10)));
     });
 
     return () => {
@@ -303,7 +304,7 @@ export function PipelineGlobe() {
     function rotateGlobe(time: number) {
       if (autoRotate && !userInteractingRef.current && !prefersReducedMotion && mapRef.current) {
         const map = mapRef.current;
-        if (map.getZoom() < 4) {
+        if (map.getZoom() < 5) {
           const center = map.getCenter();
           const deltaSeconds = (time - lastTime) / 1000;
           map.easeTo({
@@ -336,7 +337,6 @@ export function PipelineGlobe() {
     const map = mapRef.current;
 
     setSelectedOsm(null);
-    setZoomWarning(false);
     setMapMoved(false);
     setLoading(true);
     setError(null);
@@ -363,20 +363,29 @@ export function PipelineGlobe() {
     if (!mapRef.current) return;
     const map = mapRef.current;
 
-    if (map.getZoom() < 8) {
-      setZoomWarning(true);
-      return;
-    }
-
     setSelectedCalgary(null);
     setSelectedOsm(null);
     setLoading(true);
     setError(null);
-    setZoomWarning(false);
     setMapMoved(false);
 
+    let queryBbox = bbox;
+    const latSpan = Math.abs(bbox.north - bbox.south);
+    const lonSpan = Math.abs(bbox.east - bbox.west);
+
+    // Auto-clamp large bounding boxes around center point so query succeeds at any zoom level
+    if (latSpan > 2.0 || lonSpan > 2.0) {
+      const center = map.getCenter();
+      queryBbox = {
+        south: Math.max(-90, center.lat - 1.0),
+        north: Math.min(90, center.lat + 1.0),
+        west: Math.max(-180, center.lng - 1.0),
+        east: Math.min(180, center.lng + 1.0),
+      };
+    }
+
     try {
-      const url = `/api/v1/global-pipelines?south=${bbox.south.toFixed(4)}&west=${bbox.west.toFixed(4)}&north=${bbox.north.toFixed(4)}&east=${bbox.east.toFixed(4)}&substance=${encodeURIComponent(substance)}`;
+      const url = `/api/v1/global-pipelines?south=${queryBbox.south.toFixed(4)}&west=${queryBbox.west.toFixed(4)}&north=${queryBbox.north.toFixed(4)}&east=${queryBbox.east.toFixed(4)}&substance=${encodeURIComponent(substance)}`;
       const data = await apiFetch<GlobalPipelineGeoJSON>(url);
       setGlobalMetadata(data.metadata);
 
@@ -402,14 +411,6 @@ export function PipelineGlobe() {
       north: bounds.getNorth(),
       east: bounds.getEast(),
     };
-
-    const latSpan = Math.abs(bbox.north - bbox.south);
-    const lonSpan = Math.abs(bbox.east - bbox.west);
-    if (latSpan > 2.0 || lonSpan > 2.0 || map.getZoom() < 8) {
-      setZoomWarning(true);
-      return;
-    }
-
     loadGlobalPipelinesForBbox(bbox);
   }, [loadGlobalPipelinesForBbox]);
 
@@ -623,14 +624,6 @@ export function PipelineGlobe() {
               aria-label="3D Earth Globe map"
               style={{ touchAction: "none" }}
             />
-          )}
-
-          {/* Zoom Warning Overlay */}
-          {dataMode === "global" && zoomWarning && (
-            <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-20 flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50/95 p-3 text-xs font-bold text-orange-950 shadow-lg dark:border-orange-900 dark:bg-orange-950/95 dark:text-orange-100">
-              <ZoomIn className="h-4 w-4 shrink-0" />
-              <span>Rotate the globe and zoom into a city to search publicly mapped pipelines (minimum zoom level 8).</span>
-            </div>
           )}
         </div>
 
