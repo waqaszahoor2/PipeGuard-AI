@@ -140,3 +140,69 @@ class InspectionResponse(InspectionCreate):
 
 class ReplayRequest(BaseModel):
     samples: list[ManualPredictionRequest] = Field(min_length=1, max_length=500)
+
+
+class BoundingBox(BaseModel):
+    south: float = Field(ge=-90, le=90)
+    west: float = Field(ge=-180, le=180)
+    north: float = Field(ge=-90, le=90)
+    east: float = Field(ge=-180, le=180)
+
+
+class GeocodeResult(BaseModel):
+    display_name: str
+    latitude: float
+    longitude: float
+    bounding_box: BoundingBox
+    type: str
+
+
+class GeocodeSearchResponse(BaseModel):
+    results: list[GeocodeResult]
+    source: str = "OpenStreetMap Nominatim"
+
+
+class GlobalPipelineProperties(BaseModel):
+    pipeline_id: str
+    name: str = "Not available"
+    operator: str = "Not available"
+    substance: str = "water"
+    location: str = "underground"
+    usage: str = "distribution"
+    diameter: str = "Not available"
+    pressure: str = "Not available"
+    capacity: str = "Not available"
+    source: str = "OpenStreetMap"
+    osm_type: str = "way"
+    osm_id: int | str
+
+
+class GlobalPipelineGeometry(BaseModel):
+    type: Literal["LineString", "MultiLineString"]
+    coordinates: list[list[float]] | list[list[list[float]]]
+
+
+class GlobalPipelineFeature(BaseModel):
+    type: Literal["Feature"] = "Feature"
+    geometry: GlobalPipelineGeometry
+    properties: GlobalPipelineProperties
+
+
+class GlobalPipelineMetadata(BaseModel):
+    source: str = "OpenStreetMap"
+    data_mode: str = "Public Map Data"
+    coverage_warning: str = (
+        "Global pipeline results are based on publicly mapped OpenStreetMap data. "
+        "Coverage may be incomplete, outdated or unavailable. Underground utility "
+        "records must be verified with the relevant local authority or utility company."
+    )
+    result_count: int
+    query_timestamp: datetime
+    bounding_box: BoundingBox
+
+
+class GlobalPipelineGeoJSON(BaseModel):
+    type: Literal["FeatureCollection"] = "FeatureCollection"
+    features: list[GlobalPipelineFeature]
+    metadata: GlobalPipelineMetadata
+

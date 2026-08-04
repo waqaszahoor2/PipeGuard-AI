@@ -23,6 +23,8 @@ from app.core.security import (
 from app.db.database import get_db
 from app.db.models import ApplicationEvent, InspectionRecord, User
 from app.schemas import (
+    GeocodeSearchResponse,
+    GlobalPipelineGeoJSON,
     InspectionCreate,
     InspectionResponse,
     InspectionUpdate,
@@ -34,11 +36,15 @@ from app.schemas import (
 )
 from app.services.artifacts import ArtifactService
 from app.services.csv_validation import CsvValidationError, validate_csv_content
+from app.services.geocoding import GeocodingService
+from app.services.overpass import OverpassPipelineService
 
 
 router = APIRouter(prefix="/api/v1")
 settings = get_settings()
 artifacts = ArtifactService()
+geocoding_service = GeocodingService()
+overpass_service = OverpassPipelineService()
 DATA_DIR = PROJECT_ROOT / "data" / "demo"
 
 
@@ -401,3 +407,28 @@ def logout(response: Response) -> Response:
 @router.get("/auth/me", response_model=UserResponse)
 def me(user: CurrentUser = Depends(get_current_user)) -> UserResponse:
     return UserResponse(id=user.id, email=user.email, role=user.role)
+
+
+@router.get("/geocode/search", response_model=GeocodeSearchResponse)
+def geocode_search(q: str) -> GeocodeSearchResponse:
+    if not q or not q.strip():
+        raise HTTPException(status_code=422, detail="Search query must not be empty")
+    return geocoding_service.search(q)
+
+
+@router.get("/global-pipelines", response_model=GlobalPipelineGeoJSON)
+def get_global_pipelines(
+    south: float,
+    west: float,
+    north: float,
+    east: float,
+    substance: str = "water",
+    limit: int = 1000,
+) -> GlobalPipelineGeoJSON:
+    try:
+        return overpass_service.fetch_pipelines(
+            south=south, west=west, north=north, east=east, substance=substance, limit=limit
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+

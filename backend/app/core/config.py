@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     access_session_minutes: int = Field(default=30, ge=5, le=240)
     login_rate_limit_per_minute: int = Field(default=10, ge=1, le=100)
+    geocoder_base_url: str = "https://nominatim.openstreetmap.org"
+    overpass_api_url: str = "https://overpass-api.de/api/interpreter"
+    global_pipeline_max_results: int = Field(default=1000, ge=10, le=5000)
+    global_pipeline_max_latitude_span: float = Field(default=2.0, ge=0.1, le=10.0)
+    global_pipeline_max_longitude_span: float = Field(default=2.0, ge=0.1, le=10.0)
+    geocoder_cache_seconds: int = Field(default=86400, ge=300)
+    pipeline_cache_seconds: int = Field(default=1800, ge=60)
 
     @field_validator("session_secret", "csrf_secret")
     @classmethod
