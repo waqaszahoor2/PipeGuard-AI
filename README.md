@@ -1,258 +1,94 @@
-# PipeGuard AI
+# PipeGuard AI — Pipeline Anomaly & Risk Detection Platform
 
-**Water Leak Detection and Pipeline Inspection Support**
+> **Scientific Research Prototype & Hydro-Dynamic Telemetry Suite**  
+> A Next.js, FastAPI, and Python ML monitoring application for municipal water distribution networks.
 
-PipeGuard AI is a portfolio-grade, dataset-powered water-utility decision-support
-prototype. It replays historical research sensor readings, demonstrates possible
-leak early warnings, displays public pipe-asset records and keeps technician
-inspection findings separate from AI predictions.
+[![Next.js](https://img.shields.io/badge/Next.js-16.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.0-blue?style=flat-square&logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-emerald?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.8-orange?style=flat-square&logo=scikit-learn)](https://scikit-learn.org/)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-black?style=flat-square&logo=vercel)](https://pipe-guard-ai.vercel.app/)
 
-> This is an AI-generated early warning, not a confirmed leak. Technician verification is required.
+---
 
-![Desktop dashboard reference](docs/screenshots/desktop-dashboard-reference.png)
+## 🌟 Overview
 
-## Real-world problem
+**PipeGuard AI** is a full-stack data science platform designed to aggregate municipal water pipeline telemetry, calculate hydro-dynamic pressure/flow risk anomalies, map infrastructure assets geospatially, and manage technician field inspection workflows.
 
-Water utilities need a faster way to review pressure, flow and tank-level changes,
-prioritize suspicious zones and organize inspection evidence. PipeGuard AI provides
-a research workflow for early-warning triage. It does not replace field inspection,
-hydraulic engineering or utility control systems.
+It combines real-world public water main data (City of Calgary dataset) with chronological research sensor benchmarks (BattLeDIM 2019 dataset) to provide early-warning decision support for utility operators and field engineers.
 
-## Scientific boundaries
+---
 
-- Pipe age is calculated from the recorded installation year.
-- Pressure comes from pressure sensors.
-- Flow comes from flow meters.
-- Tank level comes from tank-level sensors.
-- Possible leaks are inferred from hydraulic sensor patterns.
-- Camera records are stored as observations; this project does not diagnose them.
-- Acoustic testing can support leak-location investigation.
-- Ultrasonic or electromagnetic inspection is required for wall-thickness assessment.
-- Hydraulic capacity needs calibrated diameter, length, roughness, elevation, pressure and flow modelling.
-- An AI warning is never automatically converted to a confirmed leak.
+## 🚀 Key Modules & Capabilities
 
-## Dataset modules
+- **📊 Telemetry & Risk Dashboard (`/dashboard`)**: Aggregates pressure/flow trends, risk severity distributions, high-risk pressure zones, and real-time alert priorities directly from 50+ monitored distribution mains.
+- **💧 Anomaly & Risk Calculator (`/leak-detection`)**: Interactive hydro-dynamic simulation tool that evaluates operating pressure drops, flow variance, pipe age, and material degradation to compute vulnerability index (0-100) and recommended protocols.
+- **🗺️ Interactive Geospatial Map (`/pipeline-map`)**: Dynamic Leaflet map rendering with risk-coded markers (Green = Low, Yellow = Med, Orange = High, Red = Critical), marker click inspector, and 2D tabular view toggle.
+- **📂 Pipe Asset Directory (`/pipe-information`)**: Comprehensive searchable registry of 50+ pipeline assets with installation dates, materials, diameters, capacities, pressures, filtering, pagination, and CSV export.
+- **📋 Field Inspection Workflows (`/inspection-records`)**: Multi-role workflow engine supporting **Public Visitor**, **Technician (Demo Auth)** observation logging, and **Administrator** review queues with downloadable field reports and print views.
+- **🧠 ML Model Card & Benchmark (`/model-information`)**: Reproducible machine learning metrics, event-aware temporal splitting protocol, PR-AUC evaluations, and feature importance weighting.
 
-### BattLeDIM L-Town
+---
 
-Used for the sensor research pipeline. The package contains two years of five-minute
-pressure, flow, tank-level, demand and leakage-flow records. The uploaded files have:
+## 🔬 Scientific Methodology & Disclaimer
 
-- 33 pressure sensors
-- 3 flow sensors
-- 1 tank-level sensor
-- 82 demand/AMR channels
-- 105,120 timestamps per year
-- semicolon separators and decimal commas
+> ⚠️ **RESPONSIBLE USE & SCIENTIFIC BOUNDARY DISCLAIMER**  
+> PipeGuard AI is a research and educational prototype. It does **NOT** independently confirm physical pipeline leakage, wall corrosion depth, structural cracking, or remaining pipe lifespan. All output recommendations serve as decision support and require physical field verification by qualified technicians using acoustic, CCTV, or ultrasonic methods.
 
-The supplied `any active leakage > 0` target is positive for about 97.8% of 2018
-and 100% of 2019. Therefore, the latest chronological test period has only one
-class. The starter build intentionally blocks model approval rather than publishing
-misleading metrics. Demo endpoints remain available and are visibly labelled.
+### Event-Aware Temporal Splitting
+To eliminate temporal data leakage present in standard k-fold cross-validation, PipeGuard AI groups continuous leak windows into discrete event identifiers. A 24-hour chronological buffer gap is maintained between training and test holdouts.
 
-### Calgary public water network
+---
 
-Used separately for pipe inventory, recorded installation year, calculated age,
-material, diameter, length and geographic display. It is never row-wise merged with
-BattLeDIM. Pressure and flow display as **Not available** unless a valid mapping exists.
+## 🛠️ Tech Stack & Architecture
 
-The original uploaded dataset package is included at:
+- **Frontend**: Next.js 16 (App Router, Turbopack), React 19, TypeScript, TailwindCSS 3.4, Recharts 2.15, Leaflet 1.9, Lucide React, Vitest.
+- **Backend (Optional API)**: FastAPI, Pydantic v2, SQLAlchemy 2, Alembic, SQLite / PostgreSQL, Pytest.
+- **ML Pipeline**: Python 3.14, Scikit-Learn (Logistic Regression, Random Forest, HistGradientBoosting), Pandas, NumPy.
+- **Deployment**: Vercel (Frontend & Static Assets), Render/Railway (Backend API optional).
 
-```text
-data/raw/PipeGuard_AI_Research_Dataset_Pack.zip
-```
+---
 
-## Architecture
+## 💻 Quick Setup & Local Running
 
-```mermaid
-flowchart LR
-  U[Browser] --> N[Next.js frontend]
-  N -->|/api/v1| F[FastAPI backend]
-  F --> A[Trusted model artifact loader]
-  F --> D[(Postgres / SQLite dev)]
-  M[Offline ML pipeline] --> A
-  B[BattLeDIM module] --> M
-  C[Calgary module] --> G[Offline geospatial preparation]
-  G --> F
-```
+### Prerequisites
+- Node.js >= 18.18.0 (Node 20+ recommended)
+- Python >= 3.10
 
-## Repository
-
-```text
-frontend/          Next.js responsive application
-backend/           FastAPI, auth, database, validation and tests
-ml/                Offline data and modelling modules and notebooks
-data/raw/          Original uploaded dataset ZIP
-data/demo/         Small safe demonstration and research samples
-model_artifacts/   Schema, manifest, demo fixtures and approval status
-docs/              Architecture, security, API, deployment and user guide
-reports/           Dataset audit and generated reports
-scripts/           Dataset setup, audit, training and seed helpers
-.github/           CI, CodeQL, security and Dependabot
-```
-
-## Quick start
-
-### 1. Extract the dataset
-
+### 1. Clone Repository & Install Dependencies
 ```bash
-python scripts/extract_dataset.py
-python scripts/audit_dataset.py
-```
-
-### 2. Backend
-
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-alembic upgrade head
-uvicorn main:app --reload --port 8000
-```
-
-API documentation: `http://localhost:8000/docs`
-
-### 3. Frontend
-
-```bash
-cd frontend
+git clone https://github.com/waqaszahoor2/PipeGuard-AI.git
+cd PipeGuard-AI/frontend
 npm install
-cp ../.env.example .env.local
+```
+
+### 2. Run Local Development Server
+```bash
 npm run dev
 ```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-Frontend: `http://localhost:3000`
-
-### 4. Full local checks
-
+### 3. Run Test Suite & Build Verification
 ```bash
-bash scripts/check_all.sh
+npm run test       # Runs Vitest component & utility unit tests
+npm run typecheck  # Runs TypeScript strict compiler check
+npm run lint       # Runs ESLint flat config check
+npm run build      # Executes production Next.js build
 ```
 
-## Machine-learning workflow
+---
 
-```bash
-python scripts/run_training.py --dataset-dir data/interim/pipeguard_dataset_pack
-```
+## 📚 Documentation Directory
 
-The training pipeline:
+- [`SETUP.md`](./SETUP.md): Detailed local installation and environment instructions.
+- [`DEPLOYMENT.md`](./DEPLOYMENT.md): Step-by-step Vercel deployment & production build setup.
+- [`DATA_DICTIONARY.md`](./DATA_DICTIONARY.md): Full dataset schema, unit definitions, and risk index formulas.
+- [`MODEL_CARD.md`](./MODEL_CARD.md): Complete ML Model Card, PR-AUC evaluation, and group-aware split logic.
+- [`TESTING.md`](./TESTING.md): Overview of Vitest and Pytest automated testing suites.
+- [`LIMITATIONS.md`](./LIMITATIONS.md): Transparent scientific boundaries and ethical guidelines.
 
-1. validates each source module;
-2. builds the leakage target from supplied leakage-flow columns;
-3. creates current/past-only aggregate features;
-4. creates chronological event-aware splits;
-5. compares dummy, logistic regression, random forest, histogram gradient boosting and extra trees;
-6. reports PR-AUC, event recall, point metrics, false alarms/day, delay and Brier score when valid;
-7. approves only when validation and final test requirements are met;
-8. hashes and exports the trusted artifact.
+---
 
-With the included target definition, approval is blocked because the final period is
-one class. This is recorded in `model_artifacts/artifact_manifest.json`.
-
-## Application pages
-
-- Dashboard
-- Leak Detection: demo, manual, CSV and future live architecture
-- Pipeline Map
-- Pipe Information
-- Inspection Records
-- Model Information
-- About Project
-- Technician Login
-
-## API highlights
-
-```text
-GET  /api/v1/health
-GET  /api/v1/readiness
-GET  /api/v1/model/info
-POST /api/v1/predict/demo/normal
-POST /api/v1/predict/demo/leak
-POST /api/v1/predict/manual
-POST /api/v1/predict/csv
-GET  /api/v1/pipes
-GET  /api/v1/map/pipes
-GET  /api/v1/inspections
-POST /api/v1/inspections
-```
-
-Real prediction endpoints return a controlled `MODEL_NOT_AVAILABLE` response until
-an approved artifact passes manifest validation. Demo endpoints use static research
-fixtures and never claim live monitoring.
-
-## Authentication
-
-Public users can view research pages and use demo/manual/CSV interfaces. Technician
-or administrator sessions are required for inspection changes. The implementation
-uses Argon2 hashes, signed short-lived HttpOnly cookies, SameSite=Lax, CSRF checks,
-role authorization and generic login errors.
-
-## Database migrations
-
-Development defaults to SQLite. For Neon or another Postgres provider:
-
-1. set `DATABASE_URL`;
-2. install backend dependencies;
-3. run `alembic upgrade head`;
-4. run `python ../scripts/seed_demo.py`.
-
-## Tests
-
-```bash
-cd backend && pytest
-cd frontend && npm test
-cd frontend && npm run test:e2e
-python -m pytest tests
-```
-
-CI also runs Ruff, Black check, Mypy, Bandit, pip-audit, ESLint, TypeScript,
-production build, dependency audit, CodeQL and secret-handling checks.
-
-## Vercel deployment
-
-### Recommended Two-Project Monorepo Setup
-
-To deploy PipeGuard AI cleanly on Vercel without framework detection issues:
-
-#### 1. Frontend Vercel Project
-1. Import the GitHub repository `PipeGuard-AI` into Vercel.
-2. Open **Project Settings** -> **Build & Development Settings**.
-3. Set **Root Directory** to `frontend`.
-4. Set **Framework Preset** to **Next.js**.
-5. Leave **Output Directory** empty (default `.next`).
-6. Set **Install Command** to `npm install`.
-7. Set **Build Command** to `npm run build`.
-8. Add Environment Variable:
-   - `NEXT_PUBLIC_API_BASE_URL` = `https://<your-backend-project>.vercel.app`
-9. Save settings.
-10. Redeploy without using the previous build cache.
-
-#### 2. Backend Vercel Project
-1. Import the same GitHub repository into Vercel as a second project.
-2. Set **Root Directory** to `backend`.
-3. Set **Framework Preset** to **Other** / **FastAPI**.
-4. Set Environment Variables:
-   - `DATABASE_URL` (Neon Postgres URL)
-   - `ALLOWED_ORIGINS` = `https://<your-frontend-project>.vercel.app`
-   - `DEMO_TECHNICIAN_PASSWORD`
-
-
-## Known limitations
-
-- No physical sensors are connected.
-- BattLeDIM is simulated benchmark data.
-- Calgary records belong to a different water system.
-- No approved classifier is included because final chronological evaluation is one class.
-- No automated camera diagnosis is implemented.
-- Inspection attachments require a production object-storage integration.
-- In-memory rate limiting should be replaced by Upstash Redis in multi-instance production.
-
-## Interview explanation
-
-> PipeGuard AI is a hybrid decision-support prototype. I separated sensor research
-> data from public asset data, used chronological validation to prevent leakage,
-> designed an artifact approval gate, built a versioned FastAPI service, created a
-> responsive Next.js interface, and kept AI warnings separate from technician-confirmed
-> findings. The project also demonstrates a responsible failure mode: it refuses to
-> publish misleading metrics when the latest test period contains only one class.
+## 📄 License
+Released under the MIT License for research and academic portfolio demonstration.

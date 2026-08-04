@@ -1,235 +1,534 @@
 "use client";
 
-import { AlertTriangle, FileSpreadsheet, FlaskConical, RadioTower, SlidersHorizontal, UploadCloud } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { apiFetch, ApiError } from "@/lib/api";
-import { ResultPanel, type Prediction } from "@/components/ResultPanel";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  Download,
+  Droplets,
+  HelpCircle,
+  Info,
+  RefreshCw,
+  RotateCcw,
+  ShieldAlert,
+  Zap
+} from "lucide-react";
+import { useState } from "react";
 
-type Feature = {
-  name: string;
-  group: string;
-  unit: string;
-  description: string;
-  min: number;
-  max: number;
-  required: boolean;
-};
-type Schema = { schema_version: string; features: Feature[] };
-
-const tabs = [
-  { id: "demo", label: "Demo Mode", icon: FlaskConical },
-  { id: "manual", label: "Manual Mode", icon: SlidersHorizontal },
-  { id: "csv", label: "CSV Mode", icon: FileSpreadsheet },
-  { id: "live", label: "Future Live Mode", icon: RadioTower }
-] as const;
-
-function getMessage(error: unknown): string {
-  if (error instanceof ApiError) {
-    if (error.status === 503) return "An approved model is not available. Demo Mode remains available.";
-    return error.message;
-  }
-  return "The API is unavailable. Start the FastAPI backend and check NEXT_PUBLIC_API_BASE_URL.";
+interface EvaluationResult {
+  riskScore: number;
+  riskLevel: "Low" | "Medium" | "High" | "Critical";
+  contributingFactors: string[];
+  recommendedAction: string;
+  confidence: string;
 }
 
 export default function LeakDetectionPage() {
-  const [active, setActive] = useState<(typeof tabs)[number]["id"]>("demo");
-  const [schema, setSchema] = useState<Schema | null>(null);
-  const [result, setResult] = useState<Prediction | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [manual, setManual] = useState<Record<string, number>>({});
-  const [timestamp, setTimestamp] = useState("2019-01-01T00:00");
-  const [file, setFile] = useState<File | null>(null);
-  const [csvInfo, setCsvInfo] = useState<string | null>(null);
+  // Input fields
+  const [pressure, setPressure] = useState<number>(4.2);
+  const [flowRate, setFlowRate] = useState<number>(180);
+  const [temperature, setTemperature] = useState<number>(11.5);
+  const [pipeAge, setPipeAge] = useState<number>(35);
+  const [diameter, setDiameter] = useState<number>(300);
+  const [material, setMaterial] = useState<string>("Cast Iron");
+  const [zone, setZone] = useState<string>("DOWNTOWN");
+  const [pressureDrop, setPressureDrop] = useState<number>(0.8);
+  const [flowVariation, setFlowVariation] = useState<number>(25.0);
 
-  useEffect(() => {
-    fetch("/feature_schema.json")
-      .then((r) => r.json())
-      .then((payload: Schema) => {
-        setSchema(payload);
-        setManual(Object.fromEntries(payload.features.map((feature) => [feature.name, (feature.min + feature.max) / 2])));
-      })
-      .catch(() => setError("Feature schema could not be loaded."));
-  }, []);
+  const [result, setResult] = useState<EvaluationResult | null>(null);
+  const [evaluating, setEvaluating] = useState<boolean>(false);
 
-  const groups = useMemo(() => {
-    const map = new Map<string, Feature[]>();
-    schema?.features.forEach((feature) => map.set(feature.group, [...(map.get(feature.group) ?? []), feature]));
-    return [...map.entries()];
-  }, [schema]);
+  // Preset Handlers
+  const setPresetNormal = () => {
+    setPressure(4.8);
+    setFlowRate(210);
+    setTemperature(10.5);
+    setPipeAge(15);
+    setDiameter(300);
+    setMaterial("Ductile Iron");
+    setZone("WEST CALGARY");
+    setPressureDrop(0.1);
+    setFlowVariation(2.0);
+    setResult(null);
+  };
 
-  async function runDemo(kind: "normal" | "leak") {
-    setBusy(true); setError(null); setResult(null);
-    try {
-      setResult(await apiFetch<Prediction>(`/api/v1/predict/demo/${kind}`, { method: "POST" }));
-    } catch (err) {
-      setError(getMessage(err));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const setPresetMinorAnomaly = () => {
+    setPressure(3.9);
+    setFlowRate(235);
+    setTemperature(11.8);
+    setPipeAge(40);
+    setDiameter(250);
+    setMaterial("Cast Iron");
+    setZone("NORTH HILL");
+    setPressureDrop(0.6);
+    setFlowVariation(18.5);
+    setResult(null);
+  };
 
-  async function runManual(event: React.FormEvent) {
-    event.preventDefault();
-    setBusy(true); setError(null); setResult(null);
-    try {
-      const payload = { timestamp: new Date(timestamp).toISOString(), ...manual };
-      setResult(await apiFetch<Prediction>("/api/v1/predict/manual", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      }));
-    } catch (err) {
-      setError(getMessage(err));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const setPresetMajorAnomaly = () => {
+    setPressure(2.6);
+    setFlowRate(340);
+    setTemperature(13.2);
+    setPipeAge(55);
+    setDiameter(350);
+    setMaterial("Cast Iron");
+    setZone("DOWNTOWN");
+    setPressureDrop(1.9);
+    setFlowVariation(48.0);
+    setResult(null);
+  };
 
-  async function validateCsv() {
-    if (!file) return;
-    setBusy(true); setError(null); setCsvInfo(null);
-    const form = new FormData();
-    form.append("file", file);
-    try {
-      const payload = await apiFetch<{ rows: number }>("/api/v1/predict/csv", { method: "POST", body: form });
-      setCsvInfo(`${payload.rows} rows were validated and analysed.`);
-    } catch (err) {
-      setError(getMessage(err));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const setPresetAgedCastIron = () => {
+    setPressure(3.1);
+    setFlowRate(190);
+    setTemperature(12.5);
+    setPipeAge(62);
+    setDiameter(200);
+    setMaterial("Cast Iron");
+    setZone("GLENMORE");
+    setPressureDrop(1.2);
+    setFlowVariation(30.0);
+    setResult(null);
+  };
+
+  const handleReset = () => {
+    setPresetNormal();
+  };
+
+  const handleEvaluate = () => {
+    setEvaluating(true);
+
+    setTimeout(() => {
+      // Hydro-dynamic & age heuristics rule calculator
+      let score = 10;
+      const factors: string[] = [];
+
+      // Pressure drop factor
+      if (pressureDrop > 1.5) {
+        score += 40;
+        factors.push(`Severe pressure drop of ${pressureDrop.toFixed(1)} bar exceeds nominal hydraulic tolerance.`);
+      } else if (pressureDrop > 0.5) {
+        score += 20;
+        factors.push(`Moderate pressure drop of ${pressureDrop.toFixed(1)} bar detected.`);
+      }
+
+      // Flow variation factor
+      if (Math.abs(flowVariation) > 35) {
+        score += 25;
+        factors.push(`Flow rate deviation of ${flowVariation > 0 ? "+" : ""}${flowVariation.toFixed(1)} L/s indicates potential downstream leakage or line rupture.`);
+      } else if (Math.abs(flowVariation) > 15) {
+        score += 12;
+        factors.push(`Elevated flow variance (${flowVariation.toFixed(1)} L/s) relative to historical baseline.`);
+      }
+
+      // Material & Pipe Age vulnerability
+      if (material === "Cast Iron") {
+        if (pipeAge > 50) {
+          score += 22;
+          factors.push(`Cast Iron material at age ${pipeAge} years carries high vulnerability to tuberculation and graphitic corrosion.`);
+        } else if (pipeAge > 30) {
+          score += 12;
+          factors.push(`Cast Iron construction (age ${pipeAge} years) increases failure probability.`);
+        }
+      } else if (material === "Ductile Iron" && pipeAge > 45) {
+        score += 10;
+        factors.push(`Aging Ductile Iron pipeline (${pipeAge} years) approaching maintenance threshold.`);
+      }
+
+      // Low operating pressure threshold
+      if (pressure < 3.0) {
+        score += 15;
+        factors.push(`Operating pressure (${pressure.toFixed(1)} bar) below minimum distribution standard.`);
+      }
+
+      score = Math.min(99, Math.max(5, score));
+
+      let level: "Low" | "Medium" | "High" | "Critical" = "Low";
+      let action = "Routine telemetry monitoring recommended. No immediate physical intervention required.";
+
+      if (score >= 80) {
+        level = "Critical";
+        action = "Deploy immediate field technician team for acoustic leak correlation and visual inspection within 12 hours.";
+      } else if (score >= 60) {
+        level = "High";
+        action = "Schedule high-priority technician field inspection and monitor pressure sensors closely for next 24 hours.";
+      } else if (score >= 35) {
+        level = "Medium";
+        action = "Flag segment for upcoming routine maintenance cycle. Re-verify telemetry after next diurnal cycle.";
+      }
+
+      setResult({
+        riskScore: score,
+        riskLevel: level,
+        contributingFactors: factors.length > 0 ? factors : ["All operating telemetry metrics fall within optimal nominal range."],
+        recommendedAction: action,
+        confidence: "Research Heuristic Baseline (Non-Approved Production Model)"
+      });
+
+      setEvaluating(false);
+    }, 400);
+  };
+
+  const downloadReport = () => {
+    if (!result) return;
+    const reportText = `PIPEGUARD AI - ANOMALY DETECTION REPORT
+Generated: ${new Date().toLocaleString()}
+--------------------------------------------------------
+RESEARCH PROTOTYPE EVALUATION SUMMARY
+
+INPUT TELEMETRY METRICS:
+- Zone: ${zone}
+- Material: ${material}
+- Pipe Age: ${pipeAge} years
+- Diameter: ${diameter} mm
+- Operating Pressure: ${pressure} bar
+- Flow Rate: ${flowRate} L/s
+- Fluid Temperature: ${temperature} °C
+- Recent Pressure Drop: ${pressureDrop} bar
+- Recent Flow Variation: ${flowVariation} L/s
+
+EVALUATION RESULT:
+- Risk Index: ${result.riskScore} / 100
+- Severity Tier: ${result.riskLevel}
+- Model Baseline: ${result.confidence}
+
+CONTRIBUTING FACTORS:
+${result.contributingFactors.map((f) => `- ${f}`).join("\n")}
+
+RECOMMENDED TECHNICIAN ACTION:
+${result.recommendedAction}
+
+--------------------------------------------------------
+DISCLAIMER:
+This result is generated by an unapproved research prototype for educational and algorithm evaluation purposes.
+System DOES NOT confirm physical leakage, corrosion depth, wall thickness, or remaining pipe lifespan.
+All physical actions require technician verification.
+`;
+
+    const blob = new Blob([reportText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `pipeguard_anomaly_report_${Date.now()}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Leak Detection</h2>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Compare research demo fixtures, validate manual features or upload a schema-matched CSV.</p>
+    <div className="space-y-6">
+      {/* Prominent Mandatory Disclaimer Banner */}
+      <section className="rounded-2xl border border-amber-300 bg-amber-500/10 p-4 text-amber-950 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-6 w-6 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="text-xs leading-relaxed font-semibold">
+            <strong className="text-sm font-black block">Demonstration & Research Prototype Mode</strong>
+            Results are for research, educational, and algorithm evaluation purposes and are NOT generated by an approved production model. PipeGuard AI does not confirm physical leakage, structural damage, corrosion depth, or remaining pipe lifespan.
+          </div>
+        </div>
+      </section>
+
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            Pipeline Leak & Anomaly Calculator
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Simulate operating pressure drops, flow variations, and physical pipe attributes to compute vulnerability metrics.
+          </p>
+        </div>
+        <span className="badge-demo">HEURISTIC EVALUATOR</span>
       </div>
 
-      <div className="card overflow-x-auto p-2">
-        <div className="flex min-w-max gap-2">
-          {tabs.map(({ id, label, icon: Icon }) => (
-            <button key={id} onClick={() => { setActive(id); setError(null); setResult(null); }} className={`flex min-h-11 items-center gap-2 rounded-xl px-4 text-sm font-bold ${active === id ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}>
-              <Icon className="h-4 w-4" />{label}
+      {/* Preset Quick Buttons */}
+      <section className="card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">
+            Quick Scenario Presets:
+          </span>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={setPresetNormal}
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              Normal Baseline
             </button>
-          ))}
-        </div>
-      </div>
-
-      {error && (
-        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-950 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" /><span>{error}</span>
-        </div>
-      )}
-
-      {active === "demo" && (
-        <section className="grid gap-4 lg:grid-cols-2">
-          <article className="card p-5">
-            <span className="badge-demo">DEMO DATA</span>
-            <h3 className="mt-4 text-xl font-extrabold">Research replay examples</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">These static fixtures demonstrate the result interface. They are not live readings and are not approved production predictions.</p>
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <button disabled={busy} onClick={() => runDemo("normal")} className="min-h-12 rounded-xl bg-emerald-600 px-4 font-bold text-white disabled:opacity-50">Try Normal Example</button>
-              <button disabled={busy} onClick={() => runDemo("leak")} className="min-h-12 rounded-xl bg-red-600 px-4 font-bold text-white disabled:opacity-50">Try Leak Example</button>
-            </div>
-            <button disabled className="mt-3 min-h-12 w-full rounded-xl border border-slate-200 px-4 font-bold text-slate-400 dark:border-slate-700">Replay historical unseen sample — requires approved model</button>
-          </article>
-          <article className="card p-5">
-            <h3 className="text-xl font-extrabold">What the result means</h3>
-            <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-              <li><strong>Normal:</strong> the research feature pattern does not cross the selected warning threshold.</li>
-              <li><strong>Possible Leak:</strong> an early-warning pattern needs technician review.</li>
-              <li><strong>Suspected zone:</strong> a research localization aid, not an exact leak coordinate.</li>
-              <li><strong>Abnormal sensors:</strong> signals contributing to the warning.</li>
-            </ul>
-          </article>
-        </section>
-      )}
-
-      {active === "manual" && (
-        <form onSubmit={runManual} className="space-y-4">
-          <div className="card p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div><h3 className="text-xl font-extrabold">Manual feature entry</h3><p className="mt-1 text-sm text-slate-500">Generated from feature_schema.json.</p></div>
-              <span className="rounded-full bg-slate-100 px-3 py-2 text-xs font-bold dark:bg-slate-800">Schema {schema?.schema_version ?? "…"}</span>
-            </div>
-            <label className="mt-5 block">
-              <span className="label">Dataset timestamp</span>
-              <input className="input mt-1 max-w-sm" type="datetime-local" value={timestamp} onChange={(e) => setTimestamp(e.target.value)} required />
-            </label>
+            <button
+              onClick={setPresetMinorAnomaly}
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              Minor Flow Anomaly
+            </button>
+            <button
+              onClick={setPresetMajorAnomaly}
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              Major Pressure Loss
+            </button>
+            <button
+              onClick={setPresetAgedCastIron}
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              Aged Cast Iron
+            </button>
           </div>
-          {groups.map(([group, features]) => (
-            <fieldset key={group} className="card p-5">
-              <legend className="px-2 text-lg font-extrabold">{group}</legend>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {features.map((feature) => (
-                  <label key={feature.name} className="block">
-                    <span className="label">{feature.name} ({feature.unit})</span>
-                    <input
-                      className="input mt-1"
-                      type="number"
-                      step="any"
-                      min={feature.min}
-                      max={feature.max}
-                      value={manual[feature.name] ?? ""}
-                      onChange={(e) => setManual((current) => ({ ...current, [feature.name]: Number(e.target.value) }))}
-                      required
+        </div>
+      </section>
+
+      {/* Main Grid: Inputs Form & Result Card */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Form Inputs */}
+        <section className="card p-6 space-y-5">
+          <h3 className="text-lg font-black text-slate-900 dark:text-white">Telemetry & Asset Parameters</h3>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="label">Operating Pressure (bar)</label>
+              <input
+                type="number"
+                step="0.1"
+                className="input font-mono"
+                value={pressure}
+                onChange={(e) => setPressure(parseFloat(e.target.value) || 0)}
+              />
+            </div>
+
+            <div>
+              <label className="label">Flow Rate (L/s)</label>
+              <input
+                type="number"
+                step="1"
+                className="input font-mono"
+                value={flowRate}
+                onChange={(e) => setFlowRate(parseFloat(e.target.value) || 0)}
+              />
+            </div>
+
+            <div>
+              <label className="label">Recent Pressure Drop (bar)</label>
+              <input
+                type="number"
+                step="0.1"
+                className="input font-mono"
+                value={pressureDrop}
+                onChange={(e) => setPressureDrop(parseFloat(e.target.value) || 0)}
+              />
+            </div>
+
+            <div>
+              <label className="label">Flow Rate Variation (L/s)</label>
+              <input
+                type="number"
+                step="0.5"
+                className="input font-mono"
+                value={flowVariation}
+                onChange={(e) => setFlowVariation(parseFloat(e.target.value) || 0)}
+              />
+            </div>
+
+            <div>
+              <label className="label">Fluid Temperature (°C)</label>
+              <input
+                type="number"
+                step="0.1"
+                className="input font-mono"
+                value={temperature}
+                onChange={(e) => setTemperature(parseFloat(e.target.value) || 0)}
+              />
+            </div>
+
+            <div>
+              <label className="label">Pipe Age (years)</label>
+              <input
+                type="number"
+                step="1"
+                className="input font-mono"
+                value={pipeAge}
+                onChange={(e) => setPipeAge(parseInt(e.target.value) || 0)}
+              />
+            </div>
+
+            <div>
+              <label className="label">Pipe Diameter (mm)</label>
+              <input
+                type="number"
+                step="10"
+                className="input font-mono"
+                value={diameter}
+                onChange={(e) => setDiameter(parseInt(e.target.value) || 0)}
+              />
+            </div>
+
+            <div>
+              <label className="label">Pipe Material</label>
+              <select
+                className="input"
+                value={material}
+                onChange={(e) => setMaterial(e.target.value)}
+              >
+                <option value="Cast Iron">Cast Iron</option>
+                <option value="Ductile Iron">Ductile Iron</option>
+                <option value="PVC">PVC</option>
+                <option value="Steel">Steel</option>
+                <option value="Polyethylene">Polyethylene</option>
+                <option value="Concrete">Concrete</option>
+              </select>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="label">Pressure Zone</label>
+              <select className="input" value={zone} onChange={(e) => setZone(e.target.value)}>
+                <option value="DOWNTOWN">DOWNTOWN</option>
+                <option value="BROADCAST HILL">BROADCAST HILL</option>
+                <option value="GLENMORE">GLENMORE</option>
+                <option value="WEST CALGARY">WEST CALGARY</option>
+                <option value="NORTH HILL">NORTH HILL</option>
+                <option value="OGDEN">OGDEN</option>
+                <option value="NOSE HILL">NOSE HILL</option>
+                <option value="MIDNAPORE">MIDNAPORE</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <button
+              onClick={handleReset}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            >
+              <RotateCcw className="h-3.5 w-3.5" /> Reset Default
+            </button>
+
+            <button
+              onClick={handleEvaluate}
+              disabled={evaluating}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-2.5 text-xs font-extrabold text-white shadow-lg shadow-blue-500/20 hover:opacity-95 disabled:opacity-50"
+            >
+              {evaluating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" /> Evaluating…
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4" /> Calculate Risk Score
+                </>
+              )}
+            </button>
+          </div>
+        </section>
+
+        {/* Evaluation Output Section */}
+        <section className="card p-6 flex flex-col justify-between">
+          <div>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white">Anomaly Analysis Output</h3>
+
+            {result ? (
+              <div className="mt-5 space-y-5">
+                {/* Risk Score Gauge Box */}
+                <div
+                  className={`rounded-2xl p-5 border ${
+                    result.riskLevel === "Critical"
+                      ? "border-rose-300 bg-rose-50 dark:border-rose-900/60 dark:bg-rose-950/40"
+                      : result.riskLevel === "High"
+                      ? "border-amber-300 bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/40"
+                      : result.riskLevel === "Medium"
+                      ? "border-yellow-300 bg-yellow-50 dark:border-yellow-900/60 dark:bg-yellow-950/40"
+                      : "border-emerald-300 bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/40"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                      Calculated Risk Index
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-black ${
+                        result.riskLevel === "Critical"
+                          ? "bg-rose-600 text-white"
+                          : result.riskLevel === "High"
+                          ? "bg-amber-600 text-white"
+                          : result.riskLevel === "Medium"
+                          ? "bg-yellow-600 text-white"
+                          : "bg-emerald-600 text-white"
+                      }`}
+                    >
+                      {result.riskLevel} Tier
+                    </span>
+                  </div>
+
+                  <div className="mt-3 flex items-baseline gap-2">
+                    <span className="text-4xl font-black text-slate-900 dark:text-white">
+                      {result.riskScore}
+                    </span>
+                    <span className="text-sm font-bold text-slate-500">/ 100</span>
+                  </div>
+
+                  <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        result.riskLevel === "Critical"
+                          ? "bg-rose-500"
+                          : result.riskLevel === "High"
+                          ? "bg-amber-500"
+                          : result.riskLevel === "Medium"
+                          ? "bg-yellow-500"
+                          : "bg-emerald-500"
+                      }`}
+                      style={{ width: `${result.riskScore}%` }}
                     />
-                    <span className="mt-1 block text-xs leading-5 text-slate-500">{feature.description}. Expected {feature.min} to {feature.max}.</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          ))}
-          <button disabled={busy || !schema} className="min-h-12 w-full rounded-xl bg-gradient-to-r from-blue-700 to-blue-500 px-5 font-extrabold text-white disabled:opacity-50">
-            {busy ? "Analysing…" : "Analyse Manual Reading"}
-          </button>
-        </form>
-      )}
+                  </div>
+                </div>
 
-      {active === "csv" && (
-        <section className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
-          <article className="card p-5">
-            <h3 className="text-xl font-extrabold">Upload sensor feature CSV</h3>
-            <p className="mt-2 text-sm text-slate-500">Maximum 4 MB, maximum 5,000 rows, exact columns and order, valid finite numeric values and unique timestamps.</p>
-            <label className="mt-6 grid min-h-52 cursor-pointer place-items-center rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50/60 p-6 text-center dark:border-blue-800 dark:bg-blue-950/20">
-              <div><UploadCloud className="mx-auto h-12 w-12 text-blue-600 dark:text-cyan-300" /><div className="mt-3 font-extrabold">{file ? file.name : "Choose a CSV file"}</div><div className="mt-1 text-sm text-slate-500">Drag-and-drop support uses the browser file picker.</div></div>
-              <input className="sr-only" type="file" accept=".csv,text/csv" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-            </label>
-            <button onClick={validateCsv} disabled={!file || busy} className="mt-4 min-h-12 w-full rounded-xl bg-blue-600 px-5 font-extrabold text-white disabled:opacity-50">{busy ? "Validating…" : "Validate and Analyse"}</button>
-            {csvInfo && <div className="mt-4 rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">{csvInfo}</div>}
-          </article>
-          <article className="card p-5">
-            <h3 className="text-xl font-extrabold">CSV requirements</h3>
-            <a href="/pipeguard_template.csv" download className="mt-4 inline-flex min-h-11 items-center rounded-xl border border-blue-300 px-4 font-bold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-cyan-300">Download CSV Template</a>
-            <div className="mt-5 max-h-80 overflow-auto rounded-xl border border-slate-200 dark:border-slate-700">
-              <table className="w-full text-left text-xs">
-                <thead className="sticky top-0 bg-slate-100 dark:bg-slate-800"><tr><th className="p-3">Column</th><th className="p-3">Unit</th></tr></thead>
-                <tbody>{schema?.features.map((feature) => <tr key={feature.name} className="border-t border-slate-200 dark:border-slate-700"><td className="p-3 font-semibold">{feature.name}</td><td className="p-3">{feature.unit}</td></tr>)}</tbody>
-              </table>
-            </div>
-          </article>
-        </section>
-      )}
+                {/* Contributing Factors */}
+                <div>
+                  <h4 className="text-xs font-extrabold tracking-wider uppercase text-slate-500">
+                    Main Contributing Factors
+                  </h4>
+                  <ul className="mt-2 space-y-2 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+                    {result.contributingFactors.map((factor, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-cyan-300" />
+                        <span>{factor}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-      {active === "live" && (
-        <section className="card p-5 sm:p-8">
-          <span className="rounded-full bg-slate-200 px-3 py-2 text-xs font-extrabold text-slate-700 dark:bg-slate-700 dark:text-slate-100">DISABLED PREVIEW</span>
-          <h3 className="mt-5 text-2xl font-extrabold">Future Live Sensor Architecture</h3>
-          <div className="mt-8 grid gap-3 md:grid-cols-5">
-            {["Physical sensors", "Secure gateway", "Sensor API", "Validation", "PipeGuard AI"].map((item, index) => (
-              <div key={item} className="relative rounded-xl border border-slate-200 bg-slate-50 p-4 text-center font-bold dark:border-slate-700 dark:bg-slate-800">
-                {item}{index < 4 && <span className="absolute -right-3 top-1/2 hidden -translate-y-1/2 text-blue-500 md:block">→</span>}
+                {/* Recommended Next Action */}
+                <div className="rounded-xl border border-blue-200 bg-blue-50/80 p-4 dark:border-blue-900/60 dark:bg-blue-950/40">
+                  <div className="flex items-center gap-2 text-xs font-extrabold text-blue-950 dark:text-cyan-300">
+                    <CheckCircle2 className="h-4 w-4" /> Recommended Technician Protocol
+                  </div>
+                  <p className="mt-1 text-xs font-semibold leading-relaxed text-blue-900 dark:text-slate-200">
+                    {result.recommendedAction}
+                  </p>
+                </div>
               </div>
-            ))}
+            ) : (
+              <div className="my-12 text-center text-slate-500 dark:text-slate-400">
+                <Droplets className="mx-auto h-12 w-12 opacity-30" />
+                <p className="mt-3 text-sm font-bold">No evaluation computed yet.</p>
+                <p className="mt-1 text-xs">
+                  Fill in the telemetry parameters or select a scenario preset above, then click &quot;Calculate Risk Score&quot;.
+                </p>
+              </div>
+            )}
           </div>
-          <div className="mt-8 rounded-xl border border-orange-200 bg-orange-50 p-4 font-semibold text-orange-950 dark:border-orange-900 dark:bg-orange-950/30 dark:text-orange-100">No physical sensors are currently connected.</div>
-        </section>
-      )}
 
-      {result && <ResultPanel result={result} />}
+          {result && (
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 dark:border-slate-700">
+              <span className="text-[11px] font-mono text-slate-400">{result.confidence}</span>
+              <button
+                onClick={downloadReport}
+                className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700"
+              >
+                <Download className="h-3.5 w-3.5" /> Download Report (.txt)
+              </button>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
