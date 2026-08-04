@@ -25,15 +25,19 @@ export default function PipeInformationPage() {
     setLoading(true);
     setError(null);
     try {
-      // Try to fetch from static JSON asset first
-      const res = await fetch("/calgary_pipe_sample.json");
+      // 1. Try primary source /data/pipelines.json
+      let res = await fetch("/data/pipelines.json");
+      if (!res.ok) {
+        // 2. Fallback to /calgary_pipe_sample.json
+        res = await fetch("/calgary_pipe_sample.json");
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json: PipelineAsset[] = await res.json();
       if (Array.isArray(json) && json.length > 0) {
         setRecords(json);
         setSelectedPipe(json[0] ?? null);
       } else {
-        // Fallback to bundled TypeScript dataset
+        // 3. Fallback to bundled TypeScript dataset
         setRecords(SAMPLE_PIPELINES);
         setSelectedPipe(SAMPLE_PIPELINES[0] ?? null);
       }
