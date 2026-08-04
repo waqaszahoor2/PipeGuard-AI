@@ -1,4 +1,13 @@
-# Vercel Monorepo Deployment & 404 Fix Guide for PipeGuard AI
+# Vercel Monorepo Deployment & Security Fix Guide for PipeGuard AI
+
+## 🛡️ Security Vulnerability Resolution (CVE-2025-66478)
+
+- **Previous Vulnerable Version**: `next@15.2.4` (Blocked by Vercel Security Engine).
+- **Installed Secure Version**: `next@15.5.21` (Patched Next.js 15 LTS release).
+- **React & React DOM**: `react@19.0.0`, `react-dom@19.0.0`.
+- **NPM Audit Result**: `0 vulnerabilities` found.
+
+---
 
 ## 1. Root Cause Analysis
 
