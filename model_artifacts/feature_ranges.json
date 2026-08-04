@@ -1,0 +1,72 @@
+{
+  "pressure_mean": {
+    "min": 0,
+    "max": 120,
+    "unit": "m"
+  },
+  "pressure_std": {
+    "min": 0,
+    "max": 50,
+    "unit": "m"
+  },
+  "pressure_min": {
+    "min": 0,
+    "max": 120,
+    "unit": "m"
+  },
+  "pressure_change_15m": {
+    "min": -50,
+    "max": 50,
+    "unit": "m"
+  },
+  "flow_total": {
+    "min": -500,
+    "max": 1000,
+    "unit": "m\u00b3/h"
+  },
+  "flow_change_15m": {
+    "min": -500,
+    "max": 500,
+    "unit": "m\u00b3/h"
+  },
+  "flow_imbalance": {
+    "min": 0,
+    "max": 1000,
+    "unit": "m\u00b3/h"
+  },
+  "tank_level": {
+    "min": 0,
+    "max": 20,
+    "unit": "m"
+  },
+  "tank_level_change_15m": {
+    "min": -10,
+    "max": 10,
+    "unit": "m"
+  },
+  "demand_total": {
+    "min": 0,
+    "max": 200000,
+    "unit": "L/h"
+  },
+  "hour_sin": {
+    "min": -1,
+    "max": 1,
+    "unit": "ratio"
+  },
+  "hour_cos": {
+    "min": -1,
+    "max": 1,
+    "unit": "ratio"
+  },
+  "sensor_missing_count": {
+    "min": 0,
+    "max": 119,
+    "unit": "count"
+  },
+  "sensor_availability_ratio": {
+    "min": 0,
+    "max": 1,
+    "unit": "ratio"
+  }
+}

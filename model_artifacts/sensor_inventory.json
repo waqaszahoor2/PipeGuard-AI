@@ -1,0 +1,607 @@
+{
+  "source": "BattLeDIM L-Town research data",
+  "sampling_interval_minutes": 5,
+  "pressure": [
+    {
+      "sensor_id": "n1",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n4",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n31",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n54",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n105",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n114",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n163",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n188",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n215",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n229",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n288",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n296",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n332",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n342",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n410",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n415",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n429",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n458",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n469",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n495",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n506",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n516",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n519",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n549",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n613",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n636",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n644",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n679",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n722",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n726",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n740",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n752",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    },
+    {
+      "sensor_id": "n769",
+      "unit": "m",
+      "description": "Pressure head research sensor"
+    }
+  ],
+  "flow": [
+    {
+      "sensor_id": "p227",
+      "unit": "m\u00b3/h",
+      "description": "Flow research sensor"
+    },
+    {
+      "sensor_id": "p235",
+      "unit": "m\u00b3/h",
+      "description": "Flow research sensor"
+    },
+    {
+      "sensor_id": "PUMP_1",
+      "unit": "m\u00b3/h",
+      "description": "Flow research sensor"
+    }
+  ],
+  "tank_level": [
+    {
+      "sensor_id": "T1",
+      "unit": "m",
+      "description": "Tank level research sensor"
+    }
+  ],
+  "demand": [
+    {
+      "sensor_id": "n1",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n2",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n3",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n4",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n6",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n7",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n8",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n9",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n10",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n11",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n13",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n16",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n17",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n18",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n19",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n20",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n21",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n22",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n23",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n24",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n25",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n26",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n27",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n28",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n29",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n30",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n31",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n32",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n33",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n34",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n35",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n36",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n39",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n40",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n41",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n42",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n43",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n44",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n45",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n343",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n344",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n345",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n346",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n347",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n349",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n350",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n351",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n352",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n353",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n354",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n355",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n356",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n357",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n358",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n360",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n361",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n362",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n364",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n365",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n366",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n367",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n368",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n369",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n370",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n371",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n372",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n373",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n374",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n375",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n376",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n377",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n378",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n379",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n381",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n382",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n383",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n384",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n385",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n386",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n387",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n388",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    },
+    {
+      "sensor_id": "n389",
+      "unit": "L/h",
+      "description": "Automated meter reading"
+    }
+  ]
+}

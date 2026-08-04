@@ -1,0 +1,9 @@
+{
+  "approval_status": false,
+  "metrics_calculated": false,
+  "reason": "No approved production-style model is exported. The supplied ground-truth definition marks 97.8% of 2018 rows and 100% of 2019 rows as active leakage, so the latest chronological test period has one class.",
+  "dataset_observation": {
+    "2018_positive_rate": 0.9780251141552512,
+    "2019_positive_rate": 1.0
+  }
+}

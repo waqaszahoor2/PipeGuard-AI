@@ -1,0 +1,49 @@
+{
+  "input": {
+    "timestamp": "2018-01-04T03:00:00",
+    "features": {
+      "pressure_mean": 46.9688,
+      "pressure_std": 7.2839,
+      "pressure_min": 29.27,
+      "pressure_change_15m": 0.0115,
+      "flow_total": 139.91,
+      "flow_change_15m": -0.85,
+      "flow_imbalance": 6.45,
+      "tank_level": 3.82,
+      "tank_level_change_15m": 0.06,
+      "demand_total": 3984.58,
+      "hour_sin": 0.707107,
+      "hour_cos": 0.707107,
+      "sensor_missing_count": 0,
+      "sensor_availability_ratio": 1.0
+    }
+  },
+  "response": {
+    "status": "Possible Leak",
+    "leak_probability": 0.87,
+    "severity": "High",
+    "suspected_zone": "Zone 4",
+    "abnormal_sensors": [
+      {
+        "sensor_id": "n410",
+        "sensor_type": "pressure",
+        "status": "low",
+        "deviation": -0.28
+      },
+      {
+        "sensor_id": "p227",
+        "sensor_type": "flow",
+        "status": "high",
+        "deviation": 0.19
+      }
+    ],
+    "main_reason": "Pressure decreased while incoming flow increased in this labelled demonstration fixture.",
+    "recommended_action": "A technician should inspect the suspected zone.",
+    "warning": "This is an AI-generated early warning, not a confirmed leak. Technician verification is required.",
+    "data_mode": "demo",
+    "data_timestamp": "2018-01-04T03:00:00",
+    "prediction_timestamp": null,
+    "model_version": "demo-static-1.0",
+    "schema_version": "1.0.0"
+  }
+}

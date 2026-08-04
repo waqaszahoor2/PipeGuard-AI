@@ -1,0 +1,6 @@
+{
+  "status": "not_approved",
+  "probability_threshold": null,
+  "severity_thresholds": null,
+  "reason": "Final chronological periods contain only positive target rows under the supplied any-active-leak target."
+}

@@ -1,0 +1,14 @@
+data/raw/**
+data/interim/**
+data/processed/**
+ml/notebooks/**
+docs/screenshots/**
+docs/source-master-prompt.md
+reports/**
+tests/**
+backend/tests/**
+frontend/e2e/**
+**/__pycache__/**
+**/.pytest_cache/**
+*.db
+*.sqlite3

@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Aggregate, current/past-only feature contract for the research baseline pipeline.",
+  "features": [
+    {
+      "name": "pressure_mean",
+      "group": "Pressure",
+      "unit": "m",
+      "description": "Mean of available pressure sensors",
+      "min": 0,
+      "max": 120,
+      "required": true
+    },
+    {
+      "name": "pressure_std",
+      "group": "Pressure",
+      "unit": "m",
+      "description": "Cross-sensor pressure standard deviation",
+      "min": 0,
+      "max": 50,
+      "required": true
+    },
+    {
+      "name": "pressure_min",
+      "group": "Pressure",
+      "unit": "m",
+      "description": "Minimum available pressure",
+      "min": 0,
+      "max": 120,
+      "required": true
+    },
+    {
+      "name": "pressure_change_15m",
+      "group": "Pressure",
+      "unit": "m",
+      "description": "Past-only 15-minute pressure mean change",
+      "min": -50,
+      "max": 50,
+      "required": true
+    },
+    {
+      "name": "flow_total",
+      "group": "Flow",
+      "unit": "m\u00b3/h",
+      "description": "Sum of available flow sensors",
+      "min": -500,
+      "max": 1000,
+      "required": true
+    },
+    {
+      "name": "flow_change_15m",
+      "group": "Flow",
+      "unit": "m\u00b3/h",
+      "description": "Past-only 15-minute total-flow change",
+      "min": -500,
+      "max": 500,
+      "required": true
+    },
+    {
+      "name": "flow_imbalance",
+      "group": "Flow",
+      "unit": "m\u00b3/h",
+      "description": "Maximum minus minimum flow reading",
+      "min": 0,
+      "max": 1000,
+      "required": true
+    },
+    {
+      "name": "tank_level",
+      "group": "Tank level",
+      "unit": "m",
+      "description": "Current tank level",
+      "min": 0,
+      "max": 20,
+      "required": true
+    },
+    {
+      "name": "tank_level_change_15m",
+      "group": "Tank level",
+      "unit": "m",
+      "description": "Past-only 15-minute tank-level change",
+      "min": -10,
+      "max": 10,
+      "required": true
+    },
+    {
+      "name": "demand_total",
+      "group": "Meter readings",
+      "unit": "L/h",
+      "description": "Sum of available automated meter readings",
+      "min": 0,
+      "max": 200000,
+      "required": true
+    },
+    {
+      "name": "hour_sin",
+      "group": "Time information",
+      "unit": "ratio",
+      "description": "Cyclical hour sine",
+      "min": -1,
+      "max": 1,
+      "required": true
+    },
+    {
+      "name": "hour_cos",
+      "group": "Time information",
+      "unit": "ratio",
+      "description": "Cyclical hour cosine",
+      "min": -1,
+      "max": 1,
+      "required": true
+    },
+    {
+      "name": "sensor_missing_count",
+      "group": "Data quality",
+      "unit": "count",
+      "description": "Missing research sensor values",
+      "min": 0,
+      "max": 119,
+      "required": true
+    },
+    {
+      "name": "sensor_availability_ratio",
+      "group": "Data quality",
+      "unit": "ratio",
+      "description": "Available research sensors divided by expected sensors",
+      "min": 0,
+      "max": 1,
+      "required": true
+    }
+  ],
+  "warning": "This schema supports a research prototype, not direct physical confirmation of a leak."
+}

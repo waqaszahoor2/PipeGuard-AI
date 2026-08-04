@@ -1,0 +1,2 @@
+Timestamp,pressure_mean,pressure_std,pressure_min,pressure_change_15m,flow_total,flow_change_15m,flow_imbalance,tank_level,tank_level_change_15m,demand_total,hour_sin,hour_cos,sensor_missing_count,sensor_availability_ratio
+2018-01-01T08:20:00,46.4876,7.2864,28.46,-0.1133,186.9,18.05,94.43,3.38,-0.03,25501.15,0.866025,-0.5,0,1.0

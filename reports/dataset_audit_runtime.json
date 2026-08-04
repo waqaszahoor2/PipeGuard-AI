@@ -1,0 +1,178 @@
+{
+  "battledim": {
+    "2018": {
+      "pressures": {
+        "rows": 105120,
+        "columns": 34,
+        "duplicate_timestamps": 0,
+        "missing_values": 0,
+        "timestamp_parse_failures": 0,
+        "interval_mismatches": 0
+      },
+      "flows": {
+        "rows": 105120,
+        "columns": 4,
+        "duplicate_timestamps": 0,
+        "missing_values": 0,
+        "timestamp_parse_failures": 0,
+        "interval_mismatches": 0
+      },
+      "levels": {
+        "rows": 105120,
+        "columns": 2,
+        "duplicate_timestamps": 0,
+        "missing_values": 0,
+        "timestamp_parse_failures": 0,
+        "interval_mismatches": 0
+      },
+      "demands": {
+        "rows": 105120,
+        "columns": 83,
+        "duplicate_timestamps": 0,
+        "missing_values": 0,
+        "timestamp_parse_failures": 0,
+        "interval_mismatches": 0
+      },
+      "leakages": {
+        "rows": 105120,
+        "columns": 15,
+        "duplicate_timestamps": 0,
+        "missing_values": 0,
+        "timestamp_parse_failures": 0,
+        "interval_mismatches": 0
+      },
+      "target": {
+        "rows": 105120,
+        "positive_rows": 102810,
+        "positive_rate": 0.9780251141552512,
+        "leak_event_columns": [
+          "p31",
+          "p158",
+          "p183",
+          "p232",
+          "p257",
+          "p369",
+          "p427",
+          "p461",
+          "p538",
+          "p628",
+          "p654",
+          "p673",
+          "p810",
+          "p866"
+        ]
+      }
+    },
+    "2019": {
+      "pressures": {
+        "rows": 105120,
+        "columns": 34,
+        "duplicate_timestamps": 0,
+        "missing_values": 0,
+        "timestamp_parse_failures": 0,
+        "interval_mismatches": 0
+      },
+      "flows": {
+        "rows": 105120,
+        "columns": 4,
+        "duplicate_timestamps": 0,
+        "missing_values": 0,
+        "timestamp_parse_failures": 0,
+        "interval_mismatches": 0
+      },
+      "levels": {
+        "rows": 105120,
+        "columns": 2,
+        "duplicate_timestamps": 0,
+        "missing_values": 0,
+        "timestamp_parse_failures": 0,
+        "interval_mismatches": 0
+      },
+      "demands": {
+        "rows": 105120,
+        "columns": 83,
+        "duplicate_timestamps": 0,
+        "missing_values": 0,
+        "timestamp_parse_failures": 0,
+        "interval_mismatches": 0
+      },
+      "leakages": {
+        "rows": 105120,
+        "columns": 24,
+        "duplicate_timestamps": 0,
+        "missing_values": 0,
+        "timestamp_parse_failures": 0,
+        "interval_mismatches": 0
+      },
+      "target": {
+        "rows": 105120,
+        "positive_rows": 105120,
+        "positive_rate": 1.0,
+        "leak_event_columns": [
+          "p123",
+          "p142",
+          "p193",
+          "p257",
+          "p277",
+          "p280",
+          "p331",
+          "p426",
+          "p427",
+          "p455",
+          "p514",
+          "p523",
+          "p586",
+          "p653",
+          "p654",
+          "p680",
+          "p710",
+          "p721",
+          "p762",
+          "p800",
+          "p810",
+          "p827",
+          "p879"
+        ]
+      }
+    }
+  },
+  "calgary": {
+    "pipes": {
+      "rows": 60740,
+      "columns": [
+        "p_zone",
+        "status_ind",
+        "length",
+        "diam",
+        "material",
+        "year",
+        "globalid",
+        "multilinestring"
+      ]
+    },
+    "breaks": {
+      "rows": 37516,
+      "columns": [
+        "break_date",
+        "break_type",
+        "status",
+        "point"
+      ]
+    },
+    "communities": {
+      "rows": 313,
+      "columns": [
+        "class",
+        "class_code",
+        "comm_code",
+        "name",
+        "sector",
+        "srg",
+        "comm_structure",
+        "created_dt",
+        "modified_dt",
+        "multipolygon"
+      ]
+    }
+  }
+}

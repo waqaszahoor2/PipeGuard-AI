@@ -1,0 +1,30 @@
+name: Security Checks
+
+on:
+  pull_request:
+  schedule:
+    - cron: "41 4 * * 3"
+
+permissions:
+  contents: read
+
+jobs:
+  secret-and-file-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject committed environment files
+        run: |
+          if find . -type f -name '.env' -o -name '.env.production' | grep -q .; then
+            echo "Committed environment file found"
+            exit 1
+          fi
+      - name: Reject common private keys
+        run: |
+          if grep -RIl --exclude-dir=.git -E 'BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY' .; then
+            echo "Private key material found"
+            exit 1
+          fi
+      - name: Confirm original dataset remains zipped
+        run: |
+          test -f data/raw/PipeGuard_AI_Research_Dataset_Pack.zip

@@ -1,0 +1,230 @@
+{
+  "nodes": [
+    {
+      "id": "N1",
+      "coordinates": [
+        -114.12,
+        51.04
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N2",
+      "coordinates": [
+        -114.105,
+        51.052
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N3",
+      "coordinates": [
+        -114.09,
+        51.045
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N4",
+      "coordinates": [
+        -114.075,
+        51.058
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N5",
+      "coordinates": [
+        -114.06,
+        51.05
+      ],
+      "status": "warning",
+      "zone": null
+    },
+    {
+      "id": "N6",
+      "coordinates": [
+        -114.045,
+        51.064
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N7",
+      "coordinates": [
+        -114.03,
+        51.052
+      ],
+      "status": "critical",
+      "zone": "Zone 4"
+    },
+    {
+      "id": "N8",
+      "coordinates": [
+        -114.015,
+        51.06
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N9",
+      "coordinates": [
+        -114.0,
+        51.047
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N10",
+      "coordinates": [
+        -113.985,
+        51.055
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N11",
+      "coordinates": [
+        -114.11,
+        51.025
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N12",
+      "coordinates": [
+        -114.09,
+        51.03
+      ],
+      "status": "warning",
+      "zone": null
+    },
+    {
+      "id": "N13",
+      "coordinates": [
+        -114.07,
+        51.02
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N14",
+      "coordinates": [
+        -114.05,
+        51.032
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N15",
+      "coordinates": [
+        -114.03,
+        51.025
+      ],
+      "status": "normal",
+      "zone": null
+    },
+    {
+      "id": "N16",
+      "coordinates": [
+        -114.01,
+        51.035
+      ],
+      "status": "normal",
+      "zone": null
+    }
+  ],
+  "edges": [
+    {
+      "from": 0,
+      "to": 1
+    },
+    {
+      "from": 1,
+      "to": 2
+    },
+    {
+      "from": 2,
+      "to": 3
+    },
+    {
+      "from": 3,
+      "to": 4
+    },
+    {
+      "from": 4,
+      "to": 5
+    },
+    {
+      "from": 5,
+      "to": 6
+    },
+    {
+      "from": 6,
+      "to": 7
+    },
+    {
+      "from": 7,
+      "to": 8
+    },
+    {
+      "from": 8,
+      "to": 9
+    },
+    {
+      "from": 0,
+      "to": 10
+    },
+    {
+      "from": 10,
+      "to": 11
+    },
+    {
+      "from": 11,
+      "to": 12
+    },
+    {
+      "from": 12,
+      "to": 13
+    },
+    {
+      "from": 13,
+      "to": 14
+    },
+    {
+      "from": 14,
+      "to": 15
+    },
+    {
+      "from": 15,
+      "to": 9
+    },
+    {
+      "from": 2,
+      "to": 11
+    },
+    {
+      "from": 4,
+      "to": 13
+    },
+    {
+      "from": 6,
+      "to": 14
+    },
+    {
+      "from": 8,
+      "to": 15
+    }
+  ]
+}

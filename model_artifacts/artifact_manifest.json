@@ -1,0 +1,26 @@
+{
+  "model_version": "0.1.0-unapproved",
+  "training_date": null,
+  "dataset_version": "PipeGuard_AI_Research_Dataset_Pack retrieved 2026-08-03",
+  "git_commit": "not-set",
+  "feature_schema_hash": "905d9acc9136619bdfec66cc19a9bd9b5fe61f84507364b24f899a8332dfac3e",
+  "model_file_sha256": null,
+  "python_version": "3.12 target",
+  "scikit_learn_version": "pinned in backend requirements",
+  "validation_metrics": null,
+  "test_metrics": null,
+  "approval_status": false,
+  "required_files": [
+    "feature_schema.json",
+    "feature_ranges.json",
+    "thresholds.json",
+    "sensor_inventory.json",
+    "zone_mapping.json",
+    "model_metadata.json",
+    "evaluation_metrics.json",
+    "calibration_summary.json",
+    "feature_importance.json",
+    "demo_normal_sample.json",
+    "demo_leak_sample.json"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "model_name": "PipeGuard AI research baseline",
+  "model_version": "0.1.0-unapproved",
+  "approval_status": false,
+  "training_date": null,
+  "dataset_version": "PipeGuard_AI_Research_Dataset_Pack retrieved 2026-08-03",
+  "training_period": "Not approved",
+  "validation_period": "Not approved",
+  "test_period": "Not approved",
+  "feature_count": 14,
+  "limitations": [
+    "BattLeDIM is a benchmark/simulated network.",
+    "The any-active-leak target is positive for 97.8% of 2018 and 100% of 2019.",
+    "A one-class latest test period prevents defensible final classification evaluation under that target.",
+    "Calgary assets are a separate city module and are never row-wise merged with BattLeDIM."
+  ]
+}
