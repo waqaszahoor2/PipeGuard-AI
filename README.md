@@ -211,28 +211,32 @@ production build, dependency audit, CodeQL and secret-handling checks.
 
 ## Vercel deployment
 
-The root `vercel.json` defines frontend and backend services under one domain.
+### Recommended Two-Project Monorepo Setup
 
-1. Push to GitHub.
-2. Import the repository into Vercel.
-3. Confirm service roots: `frontend/` and `backend/`.
-4. Provision Neon Postgres through the marketplace.
-5. add environment variables for production, preview and development.
-6. Run Alembic migrations.
-7. Load safe demo seed data.
-8. Verify `model_artifacts/artifact_manifest.json`.
-9. Deploy a preview.
-10. Confirm `/api/v1/health`, routing, headers, mobile layouts and error states.
-11. Promote to production.
+To deploy PipeGuard AI cleanly on Vercel without framework detection issues:
 
-### Two-project fallback
+#### 1. Frontend Vercel Project
+1. Import the GitHub repository `PipeGuard-AI` into Vercel.
+2. Open **Project Settings** -> **Build & Development Settings**.
+3. Set **Root Directory** to `frontend`.
+4. Set **Framework Preset** to **Next.js**.
+5. Leave **Output Directory** empty (default `.next`).
+6. Set **Install Command** to `npm install`.
+7. Set **Build Command** to `npm run build`.
+8. Add Environment Variable:
+   - `NEXT_PUBLIC_API_BASE_URL` = `https://<your-backend-project>.vercel.app`
+9. Save settings.
+10. Redeploy without using the previous build cache.
 
-Create two Vercel projects from the same repository:
+#### 2. Backend Vercel Project
+1. Import the same GitHub repository into Vercel as a second project.
+2. Set **Root Directory** to `backend`.
+3. Set **Framework Preset** to **Other** / **FastAPI**.
+4. Set Environment Variables:
+   - `DATABASE_URL` (Neon Postgres URL)
+   - `ALLOWED_ORIGINS` = `https://<your-frontend-project>.vercel.app`
+   - `DEMO_TECHNICIAN_PASSWORD`
 
-- Frontend root: `frontend`
-- Backend root: `backend`
-- Frontend: `NEXT_PUBLIC_API_BASE_URL=https://<backend-domain>`
-- Backend: `ALLOWED_ORIGINS=https://<frontend-domain>`
 
 ## Known limitations
 
