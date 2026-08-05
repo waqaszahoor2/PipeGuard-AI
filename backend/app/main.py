@@ -20,10 +20,10 @@ from app.core.middleware import (
 )
 from app.db.database import Base, engine
 
-
 settings = get_settings()
 configure_logging(settings.log_level)
 logger = logging.getLogger("pipeguard")
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):

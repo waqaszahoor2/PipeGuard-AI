@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from io import BytesIO
 import csv
 import math
+from io import BytesIO
 
 import pandas as pd
 
 from app.core.config import get_settings
-
 
 SAFE_MIME_TYPES = {
     "text/csv",

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from collections import defaultdict, deque
-from datetime import datetime, timedelta, timezone
-import time
 import uuid
+from collections import defaultdict, deque
+from datetime import UTC, datetime, timedelta
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -60,12 +59,19 @@ class BodyLimitMiddleware(BaseHTTPMiddleware):
                 if int(content_length) > self.max_bytes:
                     return JSONResponse(
                         status_code=413,
-                        content={"error": {"code": "REQUEST_TOO_LARGE", "message": "Request is too large."}},
+                        content={
+                            "error": {
+                                "code": "REQUEST_TOO_LARGE",
+                                "message": "Request is too large.",
+                            }
+                        },
                     )
             except ValueError:
                 return JSONResponse(
                     status_code=400,
-                    content={"error": {"code": "INVALID_CONTENT_LENGTH", "message": "Invalid request."}},
+                    content={
+                        "error": {"code": "INVALID_CONTENT_LENGTH", "message": "Invalid request."}
+                    },
                 )
         return await call_next(request)
 
@@ -83,7 +89,7 @@ class InMemoryRateLimitMiddleware(BaseHTTPMiddleware):
         if request.url.path.endswith("/health"):
             return await call_next(request)
         key = request.client.host if request.client else "unknown"
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         bucket = self.requests[key]
         while bucket and now - bucket[0] > self.window:
             bucket.popleft()

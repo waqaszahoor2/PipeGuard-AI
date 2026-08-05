@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime, timezone
 import hmac
 import secrets
+from dataclasses import dataclass
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -14,7 +13,6 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.db.database import get_db
 from app.db.models import User
-
 
 SESSION_COOKIE = "pipeguard_session"
 CSRF_COOKIE = "pipeguard_csrf"

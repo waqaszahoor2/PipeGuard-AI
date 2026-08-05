@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"

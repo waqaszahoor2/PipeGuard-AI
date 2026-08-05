@@ -5,7 +5,6 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-
 WARNING = (
     "This is an AI-generated early warning, not a confirmed leak. "
     "Technician verification is required."
@@ -207,4 +206,3 @@ class GlobalPipelineGeoJSON(BaseModel):
     type: Literal["FeatureCollection"] = "FeatureCollection"
     features: list[GlobalPipelineFeature]
     metadata: GlobalPipelineMetadata
-

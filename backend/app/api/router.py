@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -39,7 +39,6 @@ from app.services.csv_validation import CsvValidationError, validate_csv_content
 from app.services.geocoding import GeocodingService
 from app.services.overpass import OverpassPipelineService
 
-
 router = APIRouter(prefix="/api/v1")
 settings = get_settings()
 artifacts = ArtifactService()
@@ -64,7 +63,7 @@ def model_unavailable() -> HTTPException:
 
 def stamped_demo(kind: str) -> PredictionResponse:
     payload = artifacts.load_demo(kind)["response"]
-    payload["prediction_timestamp"] = datetime.now(timezone.utc).isoformat()
+    payload["prediction_timestamp"] = datetime.now(UTC).isoformat()
     return PredictionResponse.model_validate(payload)
 
 
@@ -155,7 +154,7 @@ def predict_manual(payload: ManualPredictionRequest) -> PredictionResponse:
         ),
         data_mode="research",
         data_timestamp=timestamp,
-        prediction_timestamp=datetime.now(timezone.utc),
+        prediction_timestamp=datetime.now(UTC),
         model_version=artifacts.manifest["model_version"],
         schema_version=artifacts.schema["schema_version"],
     )
@@ -251,7 +250,11 @@ def map_pipes() -> dict[str, Any]:
 
 @router.get("/map/communities")
 def map_communities() -> dict[str, Any]:
-    return {"type": "FeatureCollection", "features": [], "notice": "Use the offline geospatial preparation script to add simplified boundaries."}
+    return {
+        "type": "FeatureCollection",
+        "features": [],
+        "notice": "Use the offline geospatial preparation script to add simplified boundaries.",
+    }
 
 
 @router.get("/inspection-priorities")
@@ -260,7 +263,11 @@ def inspection_priorities() -> dict[str, Any]:
         "data_mode": "Demo Data",
         "items": [
             {"zone": "Zone 4", "priority": "High", "reason": "Possible leak demonstration alert"},
-            {"zone": "Zone 7", "priority": "Medium", "reason": "Pressure fluctuation demonstration alert"},
+            {
+                "zone": "Zone 7",
+                "priority": "Medium",
+                "reason": "Pressure fluctuation demonstration alert",
+            },
             {"zone": "Zone 2", "priority": "Low", "reason": "Routine inspection demonstration"},
         ],
     }
@@ -268,7 +275,12 @@ def inspection_priorities() -> dict[str, Any]:
 
 @router.get("/inspections", response_model=list[InspectionResponse])
 def list_inspections(db: Session = Depends(get_db)) -> list[InspectionRecord]:
-    return db.query(InspectionRecord).order_by(InspectionRecord.inspection_date.desc()).limit(100).all()
+    return (
+        db.query(InspectionRecord)
+        .order_by(InspectionRecord.inspection_date.desc())
+        .limit(100)
+        .all()
+    )
 
 
 @router.get("/inspections/{inspection_id}", response_model=InspectionResponse)
@@ -324,7 +336,7 @@ def update_inspection(
         raise HTTPException(status_code=404, detail="Inspection record not found")
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(record, key, value)
-    record.updated_at = datetime.now(timezone.utc)
+    record.updated_at = datetime.now(UTC)
     db.add(
         ApplicationEvent(
             event_type="inspection_updated",
@@ -442,4 +454,3 @@ def get_global_pipelines(
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import logging
 import time
-from typing import Any
+from datetime import UTC, datetime
 
 import httpx
 
@@ -63,9 +62,7 @@ class OverpassPipelineService:
 
         return BoundingBox(south=south, west=west, north=north, east=east)
 
-    def build_query(
-        self, bbox: BoundingBox, substance: str = "water"
-    ) -> str:
+    def build_query(self, bbox: BoundingBox, substance: str = "water") -> str:
         s, w, n, e = bbox.south, bbox.west, bbox.north, bbox.east
         if substance == "all":
             query_lines = [
@@ -136,7 +133,7 @@ class OverpassPipelineService:
                 features=[],
                 metadata=GlobalPipelineMetadata(
                     result_count=0,
-                    query_timestamp=datetime.now(timezone.utc),
+                    query_timestamp=datetime.now(UTC),
                     bounding_box=bbox,
                 ),
             )
@@ -149,7 +146,11 @@ class OverpassPipelineService:
             if not isinstance(geom_raw, list) or len(geom_raw) < 2:
                 continue
 
-            coords = [[pt["lon"], pt["lat"]] for pt in geom_raw if isinstance(pt, dict) and "lon" in pt and "lat" in pt]
+            coords = [
+                [pt["lon"], pt["lat"]]
+                for pt in geom_raw
+                if isinstance(pt, dict) and "lon" in pt and "lat" in pt
+            ]
             if len(coords) < 2:
                 continue
 
@@ -161,7 +162,11 @@ class OverpassPipelineService:
                 pipeline_id=f"osm-{osm_type}-{osm_id}",
                 name=str(tags.get("name", "Not available")),
                 operator=str(tags.get("operator", "Not available")),
-                substance=str(tags.get("substance", substance_clean if substance_clean != "all" else "pipeline")),
+                substance=str(
+                    tags.get(
+                        "substance", substance_clean if substance_clean != "all" else "pipeline"
+                    )
+                ),
                 location=str(tags.get("location", "underground")),
                 usage=str(tags.get("usage", "distribution")),
                 diameter=str(tags.get("diameter", "Not available")),
@@ -179,7 +184,7 @@ class OverpassPipelineService:
             features=features,
             metadata=GlobalPipelineMetadata(
                 result_count=len(features),
-                query_timestamp=datetime.now(timezone.utc),
+                query_timestamp=datetime.now(UTC),
                 bounding_box=bbox,
             ),
         )

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import json
 from hashlib import sha256
 from pathlib import Path
-import json
 from typing import Any
 
 import joblib
 
-from app.core.config import PROJECT_ROOT, get_settings
+from app.core.config import get_settings
 
 
 class ArtifactError(RuntimeError):

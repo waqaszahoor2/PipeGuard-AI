@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import re
 import time
-from typing import Any
 
 import httpx
 
@@ -13,9 +12,7 @@ from app.schemas import BoundingBox, GeocodeResult, GeocodeSearchResponse
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-COORDINATE_PATTERN = re.compile(
-    r"^\s*([+-]?\d+(?:\.\d+)?)\s*[\s,;]\s*([+-]?\d+(?:\.\d+)?)\s*$"
-)
+COORDINATE_PATTERN = re.compile(r"^\s*([+-]?\d+(?:\.\d+)?)\s*[\s,;]\s*([+-]?\d+(?:\.\d+)?)\s*$")
 
 # In-memory geocoding cache: { normalized_query: (timestamp, response_data) }
 _GEOCODE_CACHE: dict[str, tuple[float, GeocodeSearchResponse]] = {}
@@ -54,14 +51,18 @@ class GeocodingService:
     def search(self, query: str) -> GeocodeSearchResponse:
         clean_query = query.strip()
         if not clean_query:
-            return GeocodeSearchResponse(results=[], source="OpenStreetMap Nominatim", query="", cached=False)
+            return GeocodeSearchResponse(
+                results=[], source="OpenStreetMap Nominatim", query="", cached=False
+            )
         if len(clean_query) > 160:
             clean_query = clean_query[:160]
 
         # Check coordinate format
         coord_result = self.parse_coordinate_query(clean_query)
         if coord_result:
-            return GeocodeSearchResponse(results=[coord_result], source="Coordinate Parsing", query=clean_query, cached=False)
+            return GeocodeSearchResponse(
+                results=[coord_result], source="Coordinate Parsing", query=clean_query, cached=False
+            )
 
         norm_key = clean_query.lower()
         now = time.time()
@@ -104,7 +105,9 @@ class GeocodingService:
                 data = resp.json()
         except Exception as exc:
             logger.warning("Geocoding upstream call failed: %s", exc)
-            return GeocodeSearchResponse(results=[], source="OpenStreetMap Nominatim", query=clean_query, cached=False)
+            return GeocodeSearchResponse(
+                results=[], source="OpenStreetMap Nominatim", query=clean_query, cached=False
+            )
 
         results: list[GeocodeResult] = []
         if isinstance(data, list):

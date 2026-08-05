@@ -22,7 +22,9 @@ def test_invalid_csv_is_rejected_safely(client):
 def test_wrong_csv_mime_type_is_rejected(client):
     response = client.post(
         "/api/v1/predict/csv",
-        files={"file": ("sample.csv", b"Timestamp\n2019-01-01T00:00:00Z\n", "application/octet-stream")},
+        files={
+            "file": ("sample.csv", b"Timestamp\n2019-01-01T00:00:00Z\n", "application/octet-stream")
+        },
     )
     assert response.status_code == 422
     assert "content type" in response.json()["detail"].lower()
@@ -59,7 +61,7 @@ def test_technician_can_create_but_not_delete_inspection(client):
             "confirmed_leak": "not_determined",
             "repair_required": False,
             "repair_status": "inspection_required",
-            "notes": "Test observation; no confirmed leak."
+            "notes": "Test observation; no confirmed leak.",
         },
     )
     assert created.status_code == 201
