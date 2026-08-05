@@ -98,35 +98,11 @@ const INITIAL_RECORDS: InspectionRecord[] = [
     inspection_date: "2026-08-03",
     status: "Repair Scheduled",
     findings: "Joint displacement caused by frost heave; structural integrity rating degraded to 25%.",
-    evidence_summary: "Laser profiling scan & ground radar survey.",
-    admin_notes: "Excavation permit pending city approval."
+    evidence_summary: "Ground penetrating radar log & joint gap calliper reading (18mm).",
+    admin_notes: "Joint seal repair scheduled."
   },
   {
     id: "INS-2026-006",
-    pipe_id: "PIPE-CAL-1035",
-    location: "16th Ave NE & 36th St NE, Calgary",
-    zone: "NORTH HILL",
-    technician_name: "Tech #118 (S. Chen)",
-    inspection_date: "2026-08-04",
-    status: "Confirmed Issue",
-    findings: "Severe wall thinning due to internal tuberculation and localized pressure drop.",
-    evidence_summary: "Ultrasonic thickness measurement & water sample chemical assay.",
-    admin_notes: "Work order created for pipe relining."
-  },
-  {
-    id: "INS-2026-007",
-    pipe_id: "PIPE-CAL-1003",
-    location: "Macleod Trail & 58th Ave SE, Calgary",
-    zone: "GLENMORE",
-    technician_name: "Tech #205 (J. Miller)",
-    inspection_date: "2026-08-01",
-    status: "Submitted",
-    findings: "Pressure drop of 0.7 bar observed during peak morning flow.",
-    evidence_summary: "Telemetry pressure logger export.",
-    admin_notes: ""
-  },
-  {
-    id: "INS-2026-008",
     pipe_id: "PIPE-CAL-1002",
     location: "Bow Trail & Crowchild Trail SW, Calgary",
     zone: "BROADCAST HILL",
@@ -234,118 +210,127 @@ export default function InspectionRecordsPage() {
   return (
     <div className="space-y-6 print:py-0">
       {/* Prominent Synthetic Demo Disclaimer Banner */}
-      <section className="rounded-2xl border border-blue-300 bg-blue-500/10 p-4 text-blue-950 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-200 print:hidden">
+      <section
+        aria-labelledby="synthetic-inspection-heading"
+        className="rounded-2xl border border-blue-300 bg-blue-500/10 p-4 text-blue-950 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-200 print:hidden"
+      >
         <div className="flex items-start gap-3">
           <FileText className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-cyan-300" />
-          <div className="text-xs leading-relaxed font-semibold">
-            <strong className="text-sm font-black block mb-1.5">Synthetic Demonstration Inspection Workflows</strong>
-            All field inspection records, acoustic sensor readings, and work order notes displayed on this page are synthetic demonstration fixtures replayed for research decision-support evaluation — not official municipal utility findings.
+          <div className="space-y-1 text-xs leading-relaxed font-semibold">
+            <h3
+              id="synthetic-inspection-heading"
+              className="text-sm font-black text-blue-950 dark:text-blue-100"
+            >
+              Synthetic Demonstration Inspection Workflows
+            </h3>
+            <p className="text-xs text-blue-900 dark:text-blue-200">
+              All field inspection records, acoustic sensor readings, evidence references, and work-order notes displayed here are synthetic research fixtures—not official municipal utility findings.
+            </p>
           </div>
         </div>
       </section>
 
       {/* Header & Role Switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
-        <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            Field Inspection Workflows
-          </h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Technician field observations, approval queues, and maintenance verification records.
-          </p>
+      <div className="space-y-3 print:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+              Field Inspection Workflows
+            </h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Technician field observations, approval queues, and maintenance verification records.
+            </p>
+          </div>
+
+          {/* Role Selector Buttons */}
+          <div className="flex items-center gap-2">
+            <label htmlFor="role-mode-selector" className="text-xs font-bold text-slate-500">
+              Active Role Mode:
+            </label>
+            <div id="role-mode-selector" className="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-800">
+              <button
+                onClick={() => setRoleMode("Public")}
+                className={`rounded-lg px-3 py-1.5 text-xs font-extrabold transition ${
+                  roleMode === "Public"
+                    ? "bg-white text-blue-600 shadow dark:bg-slate-700 dark:text-cyan-300"
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                }`}
+              >
+                Public Visitor
+              </button>
+              <button
+                onClick={() => setRoleMode("Technician")}
+                className={`rounded-lg px-3 py-1.5 text-xs font-extrabold transition ${
+                  roleMode === "Technician"
+                    ? "bg-white text-blue-600 shadow dark:bg-slate-700 dark:text-cyan-300"
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                }`}
+              >
+                Technician Demo
+              </button>
+              <button
+                onClick={() => setRoleMode("Admin")}
+                className={`rounded-lg px-3 py-1.5 text-xs font-extrabold transition ${
+                  roleMode === "Admin"
+                    ? "bg-white text-blue-600 shadow dark:bg-slate-700 dark:text-cyan-300"
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                }`}
+              >
+                Administrator Demo
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Role Selector Buttons */}
+        {/* Security Disclaimer Note */}
+        <p role="note" className="text-xs text-slate-500 dark:text-slate-400">
+          Simulated demonstration role — no real authentication or persistent privileges. Role changes affect only local demonstration interface states.
+        </p>
+      </div>
+
+      {/* Action Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 card p-4 print:hidden">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-500">Active Role Mode:</span>
-          <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-800">
+          <span className="badge-demo">ROLE: {roleMode.toUpperCase()}</span>
+          {roleMode === "Technician" && (
             <button
-              onClick={() => setRoleMode("Public")}
-              className={`rounded-lg px-3 py-1.5 text-xs font-extrabold transition ${
-                roleMode === "Public"
-                  ? "bg-white text-blue-600 shadow dark:bg-slate-700 dark:text-cyan-300"
-                  : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-              }`}
+              onClick={() => setShowForm(!showForm)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-blue-700"
             >
-              Public Visitor
+              <Plus className="h-4 w-4" /> Log New Inspection Report
             </button>
-            <button
-              onClick={() => setRoleMode("Technician")}
-              className={`rounded-lg px-3 py-1.5 text-xs font-extrabold transition ${
-                roleMode === "Technician"
-                  ? "bg-white text-blue-600 shadow dark:bg-slate-700 dark:text-cyan-300"
-                  : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-              }`}
-            >
-              Technician (Demo Auth)
-            </button>
-            <button
-              onClick={() => setRoleMode("Admin")}
-              className={`rounded-lg px-3 py-1.5 text-xs font-extrabold transition ${
-                roleMode === "Admin"
-                  ? "bg-white text-blue-600 shadow dark:bg-slate-700 dark:text-cyan-300"
-                  : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-              }`}
-            >
-              Administrator (Demo Auth)
-            </button>
-          </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportCSV}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          >
+            <Download className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-300" /> Export CSV ({filteredRecords.length})
+          </button>
+          <button
+            onClick={handlePrint}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          >
+            <Printer className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" /> Print Summary
+          </button>
         </div>
       </div>
 
-      {/* Role Context Bar */}
-      <section className="card p-4 print:hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-semibold">
-            {roleMode === "Public" && (
-              <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                <Users className="h-4 w-4 text-blue-600 dark:text-cyan-300" /> Public Mode: View inspection logs and export CSV summaries.
-              </span>
-            )}
-            {roleMode === "Technician" && (
-              <span className="flex items-center gap-1.5 text-blue-600 dark:text-cyan-300 font-extrabold">
-                <UserCheck className="h-4 w-4" /> Technician Mode: Create & submit new field observation records.
-              </span>
-            )}
-            {roleMode === "Admin" && (
-              <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-extrabold">
-                <ShieldCheck className="h-4 w-4" /> Administrator Mode: Review submitted reports and update repair status.
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {roleMode === "Technician" && (
-              <button
-                onClick={() => setShowForm(!showForm)}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-1.5 text-xs font-bold text-white shadow hover:bg-blue-700"
-              >
-                <Plus className="h-4 w-4" /> Log New Inspection
-              </button>
-            )}
-            <button
-              onClick={exportCSV}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-            >
-              <Download className="h-3.5 w-3.5" /> CSV
-            </button>
-            <button
-              onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-            >
-              <Printer className="h-3.5 w-3.5" /> Print
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Technician New Record Form */}
+      {/* Technician New Report Form Modal/Accordion */}
       {showForm && roleMode === "Technician" && (
-        <form onSubmit={handleCreateRecord} className="card p-6 space-y-4 border-blue-300 dark:border-blue-900">
+        <form onSubmit={handleCreateRecord} className="card p-6 space-y-4 border-2 border-blue-500/30 print:hidden">
           <div className="flex items-center justify-between border-b border-slate-200 pb-3 dark:border-slate-700">
-            <h3 className="text-base font-black text-slate-900 dark:text-white">Submit Field Observation Report</h3>
-            <button type="button" onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-600">
-              <X className="h-4 w-4" />
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+              Submit Field Inspection Report
+            </h3>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            >
+              <X className="h-5 w-5" />
             </button>
           </div>
 
@@ -440,6 +425,7 @@ export default function InspectionRecordsPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             <select
+              aria-label="Filter by Status"
               className="input py-1.5 text-xs"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -453,6 +439,7 @@ export default function InspectionRecordsPage() {
             </select>
 
             <select
+              aria-label="Filter by Zone"
               className="input py-1.5 text-xs"
               value={zoneFilter}
               onChange={(e) => setZoneFilter(e.target.value)}
@@ -492,6 +479,9 @@ export default function InspectionRecordsPage() {
                   </span>
                   <span className="font-mono text-xs font-bold text-slate-500">{record.pipe_id}</span>
                   <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">{record.zone}</span>
+                  <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-extrabold text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-cyan-300">
+                    Synthetic Demo Record
+                  </span>
                 </div>
                 <h3 className="mt-1 text-base font-extrabold text-slate-900 dark:text-white">
                   {record.location}
@@ -518,30 +508,32 @@ export default function InspectionRecordsPage() {
 
             <div className="grid gap-3 text-xs leading-relaxed sm:grid-cols-2 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
               <div>
-                <strong className="text-slate-500">Technician:</strong> {record.technician_name}
+                <span className="text-slate-500 font-bold">Technician / Inspector:</span>{" "}
+                <span className="font-bold text-slate-900 dark:text-white">{record.technician_name}</span>
               </div>
               <div>
-                <strong className="text-slate-500">Date Logged:</strong> {record.inspection_date}
+                <span className="text-slate-500 font-bold">Inspection Date:</span>{" "}
+                <span className="font-mono text-slate-900 dark:text-white">{record.inspection_date}</span>
               </div>
               <div className="sm:col-span-2">
-                <strong className="text-slate-500">Observation Findings:</strong>
-                <p className="mt-0.5 text-slate-800 dark:text-slate-200">{record.findings}</p>
+                <span className="text-slate-500 font-bold block mb-1">Observation & Acoustic Findings:</span>
+                <p className="text-slate-700 dark:text-slate-300">{record.findings}</p>
               </div>
               <div className="sm:col-span-2">
-                <strong className="text-slate-500">Evidence Attachments:</strong>
-                <p className="mt-0.5 font-mono text-slate-700 dark:text-slate-300">{record.evidence_summary}</p>
+                <span className="text-slate-500 font-bold block mb-1">Evidence Reference:</span>
+                <p className="font-mono text-blue-600 dark:text-cyan-300">{record.evidence_summary}</p>
               </div>
               {record.admin_notes && (
-                <div className="sm:col-span-2 pt-2 border-t border-slate-200 dark:border-slate-700 text-amber-700 dark:text-amber-300">
-                  <strong>Admin Action Note:</strong> {record.admin_notes}
+                <div className="sm:col-span-2 border-t border-slate-200 pt-2 dark:border-slate-700">
+                  <span className="text-slate-500 font-bold block mb-1">Administrator Review Notes:</span>
+                  <p className="text-slate-800 dark:text-slate-200 italic">{record.admin_notes}</p>
                 </div>
               )}
             </div>
 
-            {/* Admin Controls in Admin Role Mode */}
+            {/* Role Action Controls */}
             {roleMode === "Admin" && record.status === "Submitted" && (
-              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
-                <span className="text-xs font-bold text-slate-500">Admin Review Action:</span>
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700 print:hidden">
                 <button
                   onClick={() => handleAdminApprove(record.id, "Confirmed Issue")}
                   className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700"
@@ -549,16 +541,16 @@ export default function InspectionRecordsPage() {
                   Confirm Issue
                 </button>
                 <button
-                  onClick={() => handleAdminApprove(record.id, "No Issue Found")}
-                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700"
-                >
-                  No Issue Found
-                </button>
-                <button
                   onClick={() => handleAdminApprove(record.id, "Repair Scheduled")}
                   className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-700"
                 >
-                  Schedule Repair
+                  Approve Repair Schedule
+                </button>
+                <button
+                  onClick={() => handleAdminApprove(record.id, "No Issue Found")}
+                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700"
+                >
+                  Close (No Issue)
                 </button>
               </div>
             )}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { normalizePipelineAssets, PIPELINE_ASSETS_50 } from "../lib/pipeline-data";
 import { calculatePipelineSummary } from "../lib/pipeline-summary";
+import rawModelArtifact from "../data/model/evaluation-v1.2.json";
 
 describe("Server-Initialized Data Architecture", () => {
   it("normalizes 50 raw records successfully with 0 rejections", () => {
@@ -22,5 +23,11 @@ describe("Server-Initialized Data Architecture", () => {
     const ids = PIPELINE_ASSETS_50.map((a) => a.id);
     const uniqueIds = new Set(ids);
     expect(uniqueIds.size).toBe(50);
+  });
+
+  it("verifies model evaluation artifact fields", () => {
+    expect(rawModelArtifact.modelVersion).toBe("v1.2.0");
+    expect(rawModelArtifact.metrics.prAuc).toBe(0.89);
+    expect(rawModelArtifact.metrics.f1).toBe(0.85);
   });
 });

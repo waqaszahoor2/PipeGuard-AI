@@ -125,7 +125,16 @@ export function ModelInformationView({ initialEvaluation, initialError }: ModelI
             Reproducible specifications, event-aware temporal splitting methodology, and baseline comparisons.
           </p>
         </div>
-        <span className="badge-demo">MODEL CARD v1.2</span>
+        <div className="flex items-center gap-3">
+          <a
+            href="/model/evaluation-v1.2.json"
+            download
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          >
+            <FileText className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-300" /> Download Evaluation Artifact
+          </a>
+          <span className="badge-demo">MODEL CARD v1.2</span>
+        </div>
       </div>
 
       {loading ? (

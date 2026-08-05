@@ -111,19 +111,26 @@ export default function PipeInformationPage() {
             Pipeline Asset Directory
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Searchable registry of municipal distribution mains, hydro-dynamic telemetry, and physical risk attributes.
+            Searchable registry of synthetic demonstration distribution mains, replayed telemetry, and research risk attributes.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-cyan-300"
+            aria-label={`${records.length} synthetic demonstration assets`}
+          >
+            {records.length} Demo Assets
+          </span>
+
           <button
+            type="button"
             onClick={exportCSV}
             disabled={filteredRecords.length === 0}
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-blue-700 disabled:opacity-50"
           >
             <Download className="h-4 w-4" /> Download CSV ({filteredRecords.length})
           </button>
-          <span className="badge-demo">{records.length} DEMO ASSETS</span>
         </div>
       </div>
 

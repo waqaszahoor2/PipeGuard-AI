@@ -1,15 +1,13 @@
 export default function Loading() {
   return (
-    <div className="grid min-h-[50vh] place-items-center" role="status" aria-live="polite">
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative h-12 w-12">
-          <div className="absolute inset-0 rounded-full border-4 border-blue-200 dark:border-blue-900" />
-          <div className="absolute inset-0 animate-spin rounded-full border-4 border-blue-600 border-t-transparent dark:border-cyan-400 dark:border-t-transparent" />
-        </div>
-        <div className="text-sm font-extrabold tracking-wide text-slate-600 dark:text-slate-300">
-          Loading PipeGuard AI Telemetry…
-        </div>
+    <div className="space-y-6 animate-pulse p-6" role="status" aria-label="Loading page content">
+      <div className="h-8 w-64 rounded-lg bg-slate-200 dark:bg-slate-800" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-28 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+        ))}
       </div>
+      <div className="h-64 rounded-2xl bg-slate-200 dark:bg-slate-800" />
     </div>
   );
 }
