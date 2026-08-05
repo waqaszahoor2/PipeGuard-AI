@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Leak Detection | PipeGuard AI",
+  title: "Leak Detection",
   description: "Hydro-dynamic anomaly evaluation, pressure variation simulation, and vulnerability calculation."
 };
 

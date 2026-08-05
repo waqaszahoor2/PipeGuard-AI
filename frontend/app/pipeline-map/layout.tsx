@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Pipeline Map | PipeGuard AI",
+  title: "Pipeline Map",
   description: "Interactive geospatial pipeline risk map, spatial inspector, and asset filtering engine."
 };
 

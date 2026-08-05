@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Model Information | PipeGuard AI",
+  title: "Model Information",
   description: "Machine learning model card, event-aware temporal splitting methodology, and reproducible evaluation metrics."
 };
 

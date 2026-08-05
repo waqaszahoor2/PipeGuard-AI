@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About | PipeGuard AI",
+  title: "About",
   description: "PipeGuard AI research project background, architectural design, data provenance, and engineering team."
 };
 
