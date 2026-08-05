@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "next dev",
     "sync:data": "node scripts/sync-public-data.mjs",
-    "prebuild": "npm run sync:data && node scripts/check-static-assets.mjs",
+    "validate:data": "node scripts/validate-pipeline-data.mjs",
+    "prebuild": "npm run sync:data && npm run validate:data && node scripts/check-static-assets.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
