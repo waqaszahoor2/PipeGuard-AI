@@ -106,7 +106,7 @@ export default function ModelInformationPage() {
         <div className="flex items-start gap-4">
           <ShieldAlert className="mt-0.5 h-6 w-6 shrink-0 text-rose-600 dark:text-rose-400" />
           <div className="text-xs leading-relaxed font-semibold">
-            <strong className="text-sm font-black block">MODEL STATUS: RESEARCH PROTOTYPE / NOT APPROVED FOR OPERATIONAL USE</strong>
+            <strong className="text-sm font-black block mb-1.5">MODEL STATUS: RESEARCH PROTOTYPE / NOT APPROVED FOR OPERATIONAL USE</strong>
             This machine learning pipeline is designed solely for research evaluation and benchmarking against municipal hydraulic datasets. It is NOT certified for autonomous emergency dispatch, valve shutoff, or unverified field decisions.
           </div>
         </div>
