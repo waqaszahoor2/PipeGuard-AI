@@ -4,7 +4,7 @@ export default function AboutPage() {
   const items = [
     [Gauge, "Hydraulic sensing", "Pressure, flow and tank-level patterns can support early-warning research."],
     [BrainCircuit, "AI warning", "The model estimates a possible leak pattern; it does not confirm physical damage."],
-    [MapPinned, "Asset context", "Public Calgary records provide recorded year, material, diameter, length and geometry."],
+    [MapPinned, "Asset context", "Synthetic demonstration Calgary pipeline assets provide recorded year, material, diameter, length and geometry."],
     [HardHat, "Technician verification", "A qualified technician reviews the suspected zone and records actual findings."],
     [Camera, "Camera inspection", "Images may record visible conditions, but this project does not automatically diagnose them."],
     [Waves, "Specialist inspection", "Acoustic, ultrasonic or electromagnetic methods answer different physical questions."]
@@ -16,7 +16,7 @@ export default function AboutPage() {
         <div className="bg-gradient-to-br from-navy-950 via-blue-900 to-cyan-700 p-6 text-white sm:p-10">
           <span className="rounded-full bg-white/15 px-4 py-2 text-xs font-extrabold">PORTFOLIO PROTOTYPE</span>
           <h3 className="mt-6 max-w-3xl text-3xl font-extrabold tracking-tight sm:text-5xl">Earlier hydraulic warnings. Clearer inspection support.</h3>
-          <p className="mt-5 max-w-3xl text-base leading-7 text-blue-100">PipeGuard AI demonstrates how research sensor data, public asset data, secure APIs and responsive interfaces can support utility decision-making without overstating what AI can detect.</p>
+          <p className="mt-5 max-w-3xl text-base leading-7 text-blue-100">PipeGuard AI demonstrates how research sensor data, synthetic demonstration assets, secure APIs and responsive interfaces can support utility decision-making without overstating what AI can detect.</p>
         </div>
       </section>
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -29,7 +29,7 @@ export default function AboutPage() {
         <h3 className="text-xl font-extrabold">Sensor data versus asset data</h3>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <div className="rounded-xl bg-blue-50 p-5 dark:bg-blue-950/30"><h4 className="font-extrabold">BattLeDIM sensor module</h4><p className="mt-2 text-sm leading-6">Five-minute pressure, flow, tank-level, demand and leakage-flow research records used for chronological replay and modelling.</p></div>
-          <div className="rounded-xl bg-emerald-50 p-5 dark:bg-emerald-950/30"><h4 className="font-extrabold">Calgary asset module</h4><p className="mt-2 text-sm leading-6">Public installation year, material, diameter, length and geometry used for asset search and mapping.</p></div>
+          <div className="rounded-xl bg-emerald-50 p-5 dark:bg-emerald-950/30"><h4 className="font-extrabold">Synthetic Calgary Demonstration Assets</h4><p className="mt-2 text-sm leading-6">Synthetic installation year, material, diameter, length and spatial coordinates used for asset search and geospatial mapping.</p></div>
         </div>
         <p className="mt-5 font-bold">The model detects hydraulic leak patterns in unseen research sensor data using chronological replay.</p>
       </section>
