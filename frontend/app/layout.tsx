@@ -5,10 +5,11 @@ import { Shell } from "@/components/Shell";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { PipelineDataProvider } from "@/providers/PipelineDataProvider";
 import { DemoAuthProvider } from "@/providers/DemoAuthProvider";
+import { getInitialPipelineAssets } from "@/lib/server/get-initial-pipeline-assets";
 
 export const metadata: Metadata = {
   title: {
-    default: "Dashboard | PipeGuard AI",
+    default: "PipeGuard AI",
     template: "%s | PipeGuard AI"
   },
   description:
@@ -44,11 +45,18 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const initialData = getInitialPipelineAssets();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <PipelineDataProvider>
+          <PipelineDataProvider
+            initialRecords={initialData.records}
+            initialRejectedCount={initialData.rejectedCount}
+            initialSource={initialData.source}
+            initialLoadedAt={initialData.loadedAt}
+          >
             <DemoAuthProvider>
               <Shell>{children}</Shell>
             </DemoAuthProvider>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import {
   adapterToNormalizedPipelineAsset,
   PIPELINE_ASSETS_50,
@@ -12,6 +12,7 @@ export interface PipelineDataContextType {
   records: PipelineAsset[];
   filteredRecords: PipelineAsset[];
   loading: boolean;
+  refreshing: boolean;
   error: string | null;
   dataSource: string;
   isFallback: boolean;
@@ -37,14 +38,31 @@ export interface PipelineDataContextType {
 
 const PipelineDataContext = createContext<PipelineDataContextType | undefined>(undefined);
 
-export function PipelineDataProvider({ children }: { children: React.ReactNode }) {
-  const [records, setRecords] = useState<PipelineAsset[]>([]);
-  const [loading, setLoading] = useState(true);
+export type PipelineProviderProps = {
+  children: React.ReactNode;
+  initialRecords?: PipelineAsset[];
+  initialRejectedCount?: number;
+  initialSource?: string;
+  initialLoadedAt?: string;
+};
+
+export function PipelineDataProvider({
+  children,
+  initialRecords = PIPELINE_ASSETS_50,
+  initialRejectedCount = 0,
+  initialSource = "Synthetic Demonstration Asset",
+  initialLoadedAt
+}: PipelineProviderProps) {
+  const hasInitialRecords = initialRecords.length > 0;
+
+  const [records, setRecords] = useState<PipelineAsset[]>(initialRecords);
+  const [loading, setLoading] = useState(!hasInitialRecords);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [dataSource, setDataSource] = useState("Synthetic Demonstration Asset");
+  const [dataSource, setDataSource] = useState(initialSource);
   const [isFallback, setIsFallback] = useState(false);
-  const [rejectedRecordCount, setRejectedRecordCount] = useState(0);
-  const [lastLoadedAt, setLastLoadedAt] = useState<string | null>(null);
+  const [rejectedRecordCount, setRejectedRecordCount] = useState(initialRejectedCount);
+  const [lastLoadedAt, setLastLoadedAt] = useState<string | null>(initialLoadedAt ?? null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,7 +73,11 @@ export function PipelineDataProvider({ children }: { children: React.ReactNode }
   const [inspectionFilter, setInspectionFilter] = useState("");
 
   const loadData = async () => {
-    setLoading(true);
+    if (records.length === 0) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
     setError(null);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
@@ -76,7 +98,7 @@ export function PipelineDataProvider({ children }: { children: React.ReactNode }
         throw new Error("Dataset is not a JSON array");
       }
 
-      let accepted: PipelineAsset[] = [];
+      const accepted: PipelineAsset[] = [];
       let rejected = 0;
 
       rawData.forEach((item: unknown) => {
@@ -86,9 +108,6 @@ export function PipelineDataProvider({ children }: { children: React.ReactNode }
           accepted.push(parsed.data);
         } else {
           rejected++;
-          if (process.env.NODE_ENV === "development") {
-            console.warn("Pipeline record validation failed:", parsed.error, item);
-          }
         }
       });
 
@@ -103,27 +122,15 @@ export function PipelineDataProvider({ children }: { children: React.ReactNode }
       setLastLoadedAt(new Date().toISOString());
     } catch (err: unknown) {
       clearTimeout(timeoutId);
-      console.warn("Primary fetch failed, using internal PIPELINE_ASSETS_50 fallback:", err);
-
-      // Fallback
-      const fallbackRecords = PIPELINE_ASSETS_50.map((item) =>
-        adapterToNormalizedPipelineAsset(item as unknown as Record<string, unknown>)
-      );
-      setRecords(fallbackRecords);
-      setIsFallback(true);
-      setDataSource("Internal Synthetic Demonstration Asset Fallback");
-      setLastLoadedAt(new Date().toISOString());
-      if (fallbackRecords.length === 0) {
+      console.warn("Fetch failed, preserving initial records:", err);
+      if (records.length === 0) {
         setError(err instanceof Error ? err.message : "Failed to load telemetry dataset");
       }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -172,6 +179,7 @@ export function PipelineDataProvider({ children }: { children: React.ReactNode }
         records,
         filteredRecords,
         loading,
+        refreshing,
         error,
         dataSource,
         isFallback,
@@ -205,3 +213,5 @@ export function usePipelineData() {
   }
   return context;
 }
+
+export const usePipelineAssets = usePipelineData;

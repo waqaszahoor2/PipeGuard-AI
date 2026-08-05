@@ -1299,3 +1299,73 @@ export function convertToCSV(assets: PipelineAsset[]): string {
 
   return [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
 }
+
+export type NormalizationResult = {
+  records: PipelineAsset[];
+  rejectedCount: number;
+  errors: Array<{
+    index: number;
+    message: string;
+  }>;
+};
+
+export function normalizePipelineAssets(raw: unknown): NormalizationResult {
+  if (!Array.isArray(raw)) {
+    return {
+      records: [],
+      rejectedCount: 0,
+      errors: [{ index: -1, message: "Expected raw input to be an array" }]
+    };
+  }
+
+  const records: PipelineAsset[] = [];
+  const errors: Array<{ index: number; message: string }> = [];
+
+  raw.forEach((item, index) => {
+    try {
+      const normalized = adapterToNormalizedPipelineAsset(item);
+      const parsed = PipelineAssetSchema.parse(normalized);
+      records.push(parsed);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      errors.push({ index, message });
+    }
+  });
+
+  return {
+    records,
+    rejectedCount: errors.length,
+    errors
+  };
+}
+
+export async function loadPipelineAssets(signal?: AbortSignal): Promise<{
+  records: PipelineAsset[];
+  rejectedCount: number;
+  source: string;
+}> {
+  try {
+    const res = await fetch("/data/pipelines.json", { signal });
+    if (!res.ok) {
+      throw new Error(`HTTP error ${res.status}`);
+    }
+    const data = await res.json();
+    const normalized = normalizePipelineAssets(data);
+    if (normalized.records.length === 0) {
+      throw new Error("No valid records accepted from /data/pipelines.json");
+    }
+    return {
+      records: normalized.records,
+      rejectedCount: normalized.rejectedCount,
+      source: "client-fetch"
+    };
+  } catch {
+    const fallbackNormalized = normalizePipelineAssets(PIPELINE_ASSETS_50);
+    return {
+      records: fallbackNormalized.records,
+      rejectedCount: fallbackNormalized.rejectedCount,
+      source: "static-fallback"
+    };
+  }
+}
+
