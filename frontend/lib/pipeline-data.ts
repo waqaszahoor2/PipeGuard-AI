@@ -31,9 +31,12 @@ export const PipelineAssetSchema = z.object({
   inspection_status: z.enum(["Passed", "Scheduled", "Pending Review", "Failed - Action Required"]),
   riskScore: z.number().min(0).max(100).optional(),
   risk_score: z.number().min(0).max(100),
+  riskLevel: z.string().optional(),
   risk_level: z.enum(["Low", "Medium", "High", "Critical"]),
   lastInspectionDate: z.string().optional(),
   last_inspection_date: z.string(),
+  recentPressureDropBar: z.number().optional(),
+  recentFlowVariationLs: z.number().optional(),
   isDemoData: z.boolean().optional()
 });
 
@@ -1146,6 +1149,79 @@ export const PIPELINE_ASSETS_50: PipelineAsset[] = [
     last_inspection_date: "2026-07-18"
   }
 ];
+
+export function adapterToNormalizedPipelineAsset(raw: any): PipelineAsset {
+  const pipe_id = raw.pipe_id || raw.pipeId || raw.id || "PIPE-UNKNOWN";
+  const id = raw.id || pipe_id;
+  const location = raw.location || "Calgary Network Segment";
+  const zone = raw.zone || "DOWNTOWN";
+  const latitude = typeof raw.latitude === "number" ? raw.latitude : 51.0447;
+  const longitude = typeof raw.longitude === "number" ? raw.longitude : -114.0719;
+  const installation_year = raw.installation_year || raw.installationYear || 1990;
+  const pipe_age = raw.pipe_age || raw.age || (2026 - installation_year);
+  const material = raw.material || "Cast Iron";
+  const diameter_mm = raw.diameter_mm || raw.diameterMm || 300;
+  const length_m = raw.length_m || raw.lengthM || 250.0;
+  const max_capacity_lps = raw.max_capacity_lps || raw.capacity || 400;
+  const pressure_bar = typeof raw.pressure_bar === "number" ? raw.pressure_bar : typeof raw.pressureBar === "number" ? raw.pressureBar : 4.2;
+  const flow_rate_lps = typeof raw.flow_rate_lps === "number" ? raw.flow_rate_lps : typeof raw.flowRate === "number" ? raw.flowRate : 200;
+  const temperature_c = typeof raw.temperature_c === "number" ? raw.temperature_c : typeof raw.temperatureC === "number" ? raw.temperatureC : 11.0;
+  
+  let risk_level: "Low" | "Medium" | "High" | "Critical" = raw.risk_level || raw.riskLevel || "Low";
+  let risk_score = typeof raw.risk_score === "number" ? raw.risk_score : typeof raw.riskScore === "number" ? raw.riskScore : 20;
+
+  if (raw.risk_level === "critical" || raw.riskLevel === "critical") risk_level = "Critical";
+  if (raw.risk_level === "high" || raw.riskLevel === "high") risk_level = "High";
+  if (raw.risk_level === "medium" || raw.riskLevel === "medium") risk_level = "Medium";
+  if (raw.risk_level === "low" || raw.riskLevel === "low") risk_level = "Low";
+
+  let operational_status: PipelineAsset["operational_status"] = raw.operational_status || "Active";
+  if (raw.operationalStatus === "normal") operational_status = "Active";
+  if (raw.operationalStatus === "warning") operational_status = "Maintenance Required";
+  if (raw.operationalStatus === "critical") operational_status = "Under Repair";
+  if (raw.operationalStatus === "maintenance") operational_status = "Inactive";
+
+  let inspection_status: PipelineAsset["inspection_status"] = raw.inspection_status || "Passed";
+  if (raw.inspectionStatus === "passed" || raw.inspectionStatus === "not_required") inspection_status = "Passed";
+  if (raw.inspectionStatus === "inspection_required") inspection_status = "Scheduled";
+  if (raw.inspectionStatus === "under_review") inspection_status = "Pending Review";
+  if (raw.inspectionStatus === "failed") inspection_status = "Failed - Action Required";
+
+  return {
+    id,
+    pipe_id,
+    location,
+    zone,
+    latitude,
+    longitude,
+    installation_year,
+    pipe_age,
+    material,
+    diameter_mm,
+    length_m,
+    max_capacity_lps,
+    pressure_bar,
+    flow_rate_lps,
+    temperature_c,
+    operational_status,
+    inspection_status,
+    risk_score,
+    risk_level,
+    last_inspection_date: raw.last_inspection_date || raw.lastInspectionDate || "2026-06-01",
+    installationYear: installation_year,
+    age: pipe_age,
+    diameterMm: diameter_mm,
+    lengthM: length_m,
+    capacity: max_capacity_lps,
+    pressureBar: pressure_bar,
+    flowRate: flow_rate_lps,
+    temperatureC: temperature_c,
+    operationalStatus: raw.operationalStatus || (risk_level === "Critical" ? "critical" : risk_level === "High" || risk_level === "Medium" ? "warning" : "normal"),
+    inspectionStatus: raw.inspectionStatus || "not_required",
+    riskScore: risk_score,
+    lastInspectionDate: raw.last_inspection_date || raw.lastInspectionDate || "2026-06-01"
+  };
+}
 
 export function getPipelineStats(assets: PipelineAsset[] = PIPELINE_ASSETS_50) {
   const total = assets.length;

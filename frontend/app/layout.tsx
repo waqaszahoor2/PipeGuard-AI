@@ -3,14 +3,16 @@ import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import { Shell } from "@/components/Shell";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { PipelineDataProvider } from "@/providers/PipelineDataProvider";
+import { DemoAuthProvider } from "@/providers/DemoAuthProvider";
 
 export const metadata: Metadata = {
   title: {
-    default: "PipeGuard AI | Pipeline Anomaly & Risk Detection Platform",
+    default: "Dashboard | PipeGuard AI",
     template: "%s | PipeGuard AI"
   },
   description:
-    "Municipal pipeline telemetry monitoring, hydro-dynamic anomaly calculation, and technician inspection workflow platform research prototype.",
+    "Municipal pipeline telemetry monitoring, hydro-dynamic anomaly calculation, and technician inspection workflow research prototype.",
   keywords: [
     "PipeGuard AI",
     "Pipeline Leak Detection",
@@ -46,7 +48,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <Shell>{children}</Shell>
+          <PipelineDataProvider>
+            <DemoAuthProvider>
+              <Shell>{children}</Shell>
+            </DemoAuthProvider>
+          </PipelineDataProvider>
         </ThemeProvider>
       </body>
     </html>

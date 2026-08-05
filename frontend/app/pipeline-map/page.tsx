@@ -11,10 +11,10 @@ import {
   X
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
-import { SAMPLE_PIPELINES, type PipelineAsset } from "@/lib/pipesData";
+import { useMemo, useState } from "react";
+import { usePipelineData } from "@/providers/PipelineDataProvider";
+import type { PipelineAsset } from "@/lib/pipeline-data";
 
-// Dynamically import Leaflet client component with SSR disabled
 const PipelineMapClient = dynamic(() => import("@/components/PipelineMapClient"), {
   ssr: false,
   loading: () => (
@@ -30,45 +30,29 @@ const PipelineMapClient = dynamic(() => import("@/components/PipelineMapClient")
 });
 
 export default function PipelineMapPage() {
-  const [pipes, setPipes] = useState<PipelineAsset[]>([]);
+  const {
+    records,
+    filteredRecords,
+    loading,
+    error,
+    reload,
+    zoneFilter,
+    setZoneFilter,
+    riskFilter,
+    setRiskFilter,
+    materialFilter,
+    setMaterialFilter,
+    resetFilters
+  } = usePipelineData();
+
   const [selectedPipe, setSelectedPipe] = useState<PipelineAsset | null>(null);
   const [viewMode, setViewMode] = useState<"map" | "table">("map");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Filters
-  const [zoneFilter, setZoneFilter] = useState("");
-  const [riskFilter, setRiskFilter] = useState("");
-  const [materialFilter, setMaterialFilter] = useState("");
+  const activeSelectedPipe = selectedPipe || filteredRecords[0] || records[0] || null;
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPipes(SAMPLE_PIPELINES);
-      setSelectedPipe(SAMPLE_PIPELINES[0] ?? null);
-      setLoading(false);
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const zones = useMemo(() => Array.from(new Set(pipes.map((p) => p.zone))).sort(), [pipes]);
-  const materials = useMemo(() => Array.from(new Set(pipes.map((p) => p.material))).sort(), [pipes]);
+  const zones = useMemo(() => Array.from(new Set(records.map((p) => p.zone))).sort(), [records]);
+  const materials = useMemo(() => Array.from(new Set(records.map((p) => p.material))).sort(), [records]);
   const riskLevels = ["Low", "Medium", "High", "Critical"];
-
-  const filteredPipes = useMemo(() => {
-    return pipes.filter((p) => {
-      const mZone = !zoneFilter || p.zone === zoneFilter;
-      const mRisk = !riskFilter || p.risk_level === riskFilter;
-      const mMat = !materialFilter || p.material === materialFilter;
-      return mZone && mRisk && mMat;
-    });
-  }, [pipes, zoneFilter, riskFilter, materialFilter]);
-
-  const handleResetFilters = () => {
-    setZoneFilter("");
-    setRiskFilter("");
-    setMaterialFilter("");
-  };
 
   return (
     <div className="space-y-6">
@@ -163,7 +147,7 @@ export default function PipelineMapPage() {
 
             {(zoneFilter || riskFilter || materialFilter) && (
               <button
-                onClick={handleResetFilters}
+                onClick={resetFilters}
                 className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline dark:text-cyan-300"
               >
                 <X className="h-3.5 w-3.5" /> Reset
@@ -179,7 +163,7 @@ export default function PipelineMapPage() {
         <section className="card p-4 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">
-              Displaying {filteredPipes.length} Assets on Map
+              Displaying {filteredRecords.length} Assets on Map
             </span>
 
             {/* Map Legend */}
@@ -199,11 +183,33 @@ export default function PipelineMapPage() {
             </div>
           </div>
 
-          {viewMode === "map" ? (
+          {loading ? (
+            <div className="grid h-[480px] w-full place-items-center rounded-2xl bg-slate-100 dark:bg-slate-800">
+              <div className="flex flex-col items-center gap-3">
+                <RefreshCw className="h-7 w-7 animate-spin text-blue-600 dark:text-cyan-300" />
+                <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                  Loading Interactive Geospatial Engine…
+                </p>
+              </div>
+            </div>
+          ) : error && records.length === 0 ? (
+            <div className="grid h-[480px] w-full place-items-center rounded-2xl border border-rose-300 bg-rose-50 p-6 text-center text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
+              <div>
+                <AlertCircle className="mx-auto h-10 w-10 text-rose-600 dark:text-rose-400" />
+                <p className="mt-3 text-sm font-bold">{error}</p>
+                <button
+                  onClick={reload}
+                  className="mt-4 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-rose-500"
+                >
+                  Retry Loading Map Data
+                </button>
+              </div>
+            </div>
+          ) : viewMode === "map" ? (
             <div className="h-[480px] w-full">
               <PipelineMapClient
-                pipes={filteredPipes}
-                selectedPipe={selectedPipe}
+                pipes={filteredRecords}
+                selectedPipe={activeSelectedPipe}
                 onSelectPipe={(pipe) => setSelectedPipe(pipe)}
               />
             </div>
@@ -220,40 +226,47 @@ export default function PipelineMapPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700/60">
-                  {filteredPipes.map((p) => (
-                    <tr
-                      key={p.pipe_id}
-                      onClick={() => setSelectedPipe(p)}
-                      className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/30 ${
-                        selectedPipe?.pipe_id === p.pipe_id ? "bg-blue-50 font-bold dark:bg-blue-950/50" : ""
-                      }`}
-                    >
-                      <td className="p-3 font-mono font-bold text-blue-600 dark:text-cyan-300">{p.pipe_id}</td>
-                      <td className="p-3">{p.location}</td>
-                      <td className="p-3">{p.zone}</td>
-                      <td className="p-3">
-                        <span
-                          className={`inline-flex rounded-md px-2 py-0.5 text-[10px] font-black ${
-                            p.risk_level === "Critical"
-                              ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200"
-                              : p.risk_level === "High"
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200"
-                              : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
-                          }`}
-                        >
-                          {p.risk_level} ({p.risk_score})
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => setSelectedPipe(p)}
-                          className="text-xs font-bold text-blue-600 hover:underline dark:text-cyan-300"
-                        >
-                          Inspect
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredRecords.map((p) => {
+                    const id = p.pipe_id || p.id;
+                    const rLevel = p.risk_level || p.riskLevel;
+                    const rScore = p.risk_score || p.riskScore;
+                    return (
+                      <tr
+                        key={id}
+                        onClick={() => setSelectedPipe(p)}
+                        className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/30 ${
+                          (activeSelectedPipe?.pipe_id || activeSelectedPipe?.id) === id
+                            ? "bg-blue-50 font-bold dark:bg-blue-950/50"
+                            : ""
+                        }`}
+                      >
+                        <td className="p-3 font-mono font-bold text-blue-600 dark:text-cyan-300">{id}</td>
+                        <td className="p-3">{p.location}</td>
+                        <td className="p-3">{p.zone}</td>
+                        <td className="p-3">
+                          <span
+                            className={`inline-flex rounded-md px-2 py-0.5 text-[10px] font-black ${
+                              rLevel === "Critical"
+                                ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200"
+                                : rLevel === "High"
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200"
+                                : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
+                            }`}
+                          >
+                            {rLevel} ({rScore})
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <button
+                            onClick={() => setSelectedPipe(p)}
+                            className="text-xs font-bold text-blue-600 hover:underline dark:text-cyan-300"
+                          >
+                            Inspect
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -263,49 +276,49 @@ export default function PipelineMapPage() {
         {/* Selected Asset Details Inspector */}
         <aside className="card p-5">
           <h3 className="text-lg font-black text-slate-900 dark:text-white">Spatial Asset Inspector</h3>
-          {selectedPipe ? (
+          {activeSelectedPipe ? (
             <div className="mt-4 space-y-4">
               <div className="rounded-xl bg-slate-100 p-4 dark:bg-slate-800">
                 <div className="font-mono text-sm font-black text-blue-600 dark:text-cyan-300">
-                  {selectedPipe.pipe_id}
+                  {activeSelectedPipe.pipe_id || activeSelectedPipe.id}
                 </div>
                 <div className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                  {selectedPipe.location}
+                  {activeSelectedPipe.location}
                 </div>
               </div>
 
               <dl className="grid gap-2.5 text-xs sm:grid-cols-2">
                 <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                   <dt className="text-slate-500">Zone</dt>
-                  <dd className="mt-0.5 font-bold">{selectedPipe.zone}</dd>
+                  <dd className="mt-0.5 font-bold">{activeSelectedPipe.zone}</dd>
                 </div>
                 <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                   <dt className="text-slate-500">Coordinates</dt>
                   <dd className="mt-0.5 font-mono font-bold">
-                    {selectedPipe.latitude.toFixed(4)}, {selectedPipe.longitude.toFixed(4)}
+                    {activeSelectedPipe.latitude.toFixed(4)}, {activeSelectedPipe.longitude.toFixed(4)}
                   </dd>
                 </div>
                 <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                   <dt className="text-slate-500">Material & Size</dt>
                   <dd className="mt-0.5 font-bold">
-                    {selectedPipe.material} ({selectedPipe.diameter_mm} mm)
+                    {activeSelectedPipe.material} ({activeSelectedPipe.diameter_mm || activeSelectedPipe.diameterMm} mm)
                   </dd>
                 </div>
                 <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                   <dt className="text-slate-500">Pressure</dt>
                   <dd className="mt-0.5 font-mono font-bold text-blue-600 dark:text-cyan-300">
-                    {selectedPipe.pressure_bar} bar
+                    {(activeSelectedPipe.pressure_bar || activeSelectedPipe.pressureBar)?.toFixed(1)} bar
                   </dd>
                 </div>
                 <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                   <dt className="text-slate-500">Flow Rate</dt>
                   <dd className="mt-0.5 font-mono font-bold text-cyan-600 dark:text-cyan-300">
-                    {selectedPipe.flow_rate_lps} L/s
+                    {(activeSelectedPipe.flow_rate_lps || activeSelectedPipe.flowRate)?.toFixed(1)} L/s
                   </dd>
                 </div>
                 <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                   <dt className="text-slate-500">Operational Status</dt>
-                  <dd className="mt-0.5 font-bold">{selectedPipe.operational_status}</dd>
+                  <dd className="mt-0.5 font-bold">{activeSelectedPipe.operational_status || activeSelectedPipe.operationalStatus}</dd>
                 </div>
               </dl>
 
@@ -313,25 +326,25 @@ export default function PipelineMapPage() {
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-500">Risk Assessment Score</span>
                   <span className="font-black text-slate-900 dark:text-white">
-                    {selectedPipe.risk_score} / 100 ({selectedPipe.risk_level})
+                    {activeSelectedPipe.risk_score || activeSelectedPipe.riskScore} / 100 ({activeSelectedPipe.risk_level || activeSelectedPipe.riskLevel})
                   </span>
                 </div>
                 <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                   <div
                     className={`h-full rounded-full ${
-                      selectedPipe.risk_level === "Critical"
+                      activeSelectedPipe.risk_level === "Critical"
                         ? "bg-rose-500"
-                        : selectedPipe.risk_level === "High"
+                        : activeSelectedPipe.risk_level === "High"
                         ? "bg-amber-500"
                         : "bg-emerald-500"
                     }`}
-                    style={{ width: `${selectedPipe.risk_score}%` }}
+                    style={{ width: `${activeSelectedPipe.risk_score || activeSelectedPipe.riskScore}%` }}
                   />
                 </div>
               </div>
 
               <a
-                href={`/pipe-information?search=${selectedPipe.pipe_id}`}
+                href={`/pipe-information?search=${activeSelectedPipe.pipe_id || activeSelectedPipe.id}`}
                 className="mt-2 block w-full rounded-xl bg-slate-900 py-2.5 text-center text-xs font-extrabold text-white hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700"
               >
                 Open Full Asset Directory Profile →

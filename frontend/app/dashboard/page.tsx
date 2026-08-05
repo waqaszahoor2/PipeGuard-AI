@@ -15,7 +15,7 @@ import {
   Wrench,
   X
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Area,
   AreaChart,
@@ -31,13 +31,11 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { getPipeSummary, SAMPLE_PIPELINES, type PipelineAsset } from "@/lib/pipesData";
 import { StatusCard } from "@/components/StatusCard";
+import { usePipelineData } from "@/providers/PipelineDataProvider";
 
-// Mock 24h trend data generator
 const HOURLY_TREND = Array.from({ length: 24 }, (_, i) => {
   const hour = `${String(i).padStart(2, "0")}:00`;
-  // Add realistic diurnal flow fluctuation (higher morning/evening demand)
   const diurnal = Math.sin(((i - 6) / 24) * 2 * Math.PI) * 0.4;
   return {
     time: hour,
@@ -55,53 +53,153 @@ const RISK_COLORS = {
 };
 
 export default function DashboardPage() {
-  const [pipes, setPipes] = useState<PipelineAsset[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    records,
+    filteredRecords,
+    loading,
+    error,
+    reload,
+    zoneFilter,
+    setZoneFilter,
+    statusFilter,
+    setStatusFilter,
+    riskFilter,
+    setRiskFilter,
+    resetFilters
+  } = usePipelineData();
 
-  // Filters
-  const [zoneFilter, setZoneFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [riskFilter, setRiskFilter] = useState("");
+  const summary = useMemo(() => {
+    if (!filteredRecords.length) {
+      return {
+        total: 0,
+        normal: 0,
+        warning: 0,
+        critical: 0,
+        avgPressure: "0.0",
+        avgFlow: "0.0",
+        avgAge: "0",
+        avgRisk: "0.0",
+        maintenanceRequired: 0,
+        zoneStats: []
+      };
+    }
 
-  useEffect(() => {
-    // Load dataset directly
-    setPipes(SAMPLE_PIPELINES);
-    setLoading(false);
-  }, []);
+    const total = filteredRecords.length;
+    let normal = 0;
+    let warning = 0;
+    let critical = 0;
+    let totalPressure = 0;
+    let totalFlow = 0;
+    let totalAge = 0;
+    let totalRisk = 0;
+    let maintenanceRequired = 0;
 
-  const filteredPipes = useMemo(() => {
-    return pipes.filter((p) => {
-      const matchZone = !zoneFilter || p.zone === zoneFilter;
-      const matchStatus = !statusFilter || p.operational_status === statusFilter;
-      const matchRisk = !riskFilter || p.risk_level === riskFilter;
-      return matchZone && matchStatus && matchRisk;
+    const zoneMap = new Map<string, { count: number; totalRisk: number }>();
+
+    filteredRecords.forEach((p) => {
+      const rLevel = p.risk_level;
+      const isCritical = rLevel === "Critical";
+      const isWarning = rLevel === "High" || rLevel === "Medium";
+
+      if (isCritical) critical++;
+      else if (isWarning) warning++;
+      else normal++;
+
+      const pVal = p.pressure_bar ?? 0;
+      const fVal = p.flow_rate_lps ?? 0;
+      const aVal = p.pipe_age ?? 0;
+      const rVal = p.risk_score ?? 0;
+
+      totalPressure += pVal;
+      totalFlow += fVal;
+      totalAge += aVal;
+      totalRisk += rVal;
+
+      if (
+        p.operational_status === "Maintenance Required" ||
+        p.operational_status === "Under Repair" ||
+        p.operational_status === "Inactive"
+      ) {
+        maintenanceRequired++;
+      }
+
+      const zName = p.zone || "CALGARY MAIN";
+      const currentZone = zoneMap.get(zName) || { count: 0, totalRisk: 0 };
+      zoneMap.set(zName, {
+        count: currentZone.count + 1,
+        totalRisk: currentZone.totalRisk + rVal
+      });
     });
-  }, [pipes, zoneFilter, statusFilter, riskFilter]);
 
-  const summary = useMemo(() => getPipeSummary(filteredPipes), [filteredPipes]);
+    const zoneStats = Array.from(zoneMap.entries()).map(([zone, val]) => ({
+      zone,
+      count: val.count,
+      avgRisk: Number((val.totalRisk / val.count).toFixed(1))
+    }));
 
-  const zones = useMemo(() => Array.from(new Set(pipes.map((p) => p.zone))).sort(), [pipes]);
-  const statuses = useMemo(() => Array.from(new Set(pipes.map((p) => p.operational_status))).sort(), [pipes]);
+    return {
+      total,
+      normal,
+      warning,
+      critical,
+      avgPressure: (totalPressure / total).toFixed(2),
+      avgFlow: (totalFlow / total).toFixed(1),
+      avgAge: (totalAge / total).toFixed(0),
+      avgRisk: (totalRisk / total).toFixed(1),
+      maintenanceRequired,
+      zoneStats
+    };
+  }, [filteredRecords]);
+
+  const zones = useMemo(() => Array.from(new Set(records.map((p) => p.zone))).sort(), [records]);
+  const statuses = useMemo(() => Array.from(new Set(records.map((p) => p.operational_status))).sort(), [records]);
   const riskLevels = ["Low", "Medium", "High", "Critical"];
 
-  // Chart data distributions
   const riskDistribution = useMemo(() => {
     const counts = { Low: 0, Medium: 0, High: 0, Critical: 0 };
-    filteredPipes.forEach((p) => counts[p.risk_level]++);
+    filteredRecords.forEach((p) => {
+      const level = p.risk_level;
+      if (level in counts) {
+        counts[level as keyof typeof counts]++;
+      }
+    });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [filteredPipes]);
-
-  const statusDistribution = useMemo(() => {
-    const map = new Map<string, number>();
-    filteredPipes.forEach((p) => map.set(p.operational_status, (map.get(p.operational_status) ?? 0) + 1));
-    return Array.from(map.entries()).map(([name, value]) => ({ name, value }));
-  }, [filteredPipes]);
+  }, [filteredRecords]);
 
   const recentAlerts = useMemo(() => {
-    return filteredPipes
+    return filteredRecords
       .filter((p) => p.risk_level === "Critical" || p.risk_level === "High")
       .slice(0, 5);
-  }, [filteredPipes]);
+  }, [filteredRecords]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-64 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error && records.length === 0) {
+    return (
+      <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center text-rose-900 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200">
+        <ShieldAlert className="mx-auto h-12 w-12 text-rose-600 dark:text-rose-400" />
+        <h3 className="mt-4 text-lg font-bold">Failed to Load Dashboard Telemetry</h3>
+        <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">{error}</p>
+        <button
+          onClick={reload}
+          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-rose-500"
+        >
+          <RefreshCw className="h-4 w-4" /> Retry Loading Telemetry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -112,11 +210,11 @@ export default function DashboardPage() {
             Pipeline Telemetry & Risk Dashboard
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Real-time hydro-dynamic overview computed dynamically from {filteredPipes.length} monitored assets.
+            Historical telemetry replay and demonstration asset overview computed dynamically from {summary.total} monitored assets.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="badge-demo">REPLAY DATA SOURCE</span>
+          <span className="badge-demo">SYNTHETIC REPLAY DATA</span>
         </div>
       </div>
 
@@ -172,11 +270,7 @@ export default function DashboardPage() {
 
             {(zoneFilter || statusFilter || riskFilter) && (
               <button
-                onClick={() => {
-                  setZoneFilter("");
-                  setStatusFilter("");
-                  setRiskFilter("");
-                }}
+                onClick={resetFilters}
                 className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline dark:text-cyan-300"
               >
                 <X className="h-3.5 w-3.5" /> Clear Filters
@@ -203,13 +297,13 @@ export default function DashboardPage() {
         <StatusCard
           icon={AlertTriangle}
           label="Risk Warnings (Med / High)"
-          value={summary.possibleAlerts.toString()}
+          value={summary.warning.toLocaleString()}
           tone="orange"
         />
         <StatusCard
           icon={ShieldAlert}
           label="Critical Action Cases"
-          value={summary.critical.toString()}
+          value={summary.critical.toLocaleString()}
           tone="red"
         />
       </section>
@@ -412,7 +506,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between border-b border-slate-200 pb-4 dark:border-slate-700">
           <div>
             <h3 className="text-lg font-black text-slate-900 dark:text-white">Priority High-Risk Alerts</h3>
-            <p className="text-xs text-slate-500">Assets requiring immediate inspection review</p>
+            <p className="text-xs text-slate-500 font-medium">Synthetic Demonstration Findings</p>
           </div>
           <a
             href="/pipe-information"
@@ -436,23 +530,23 @@ export default function DashboardPage() {
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700/60">
               {recentAlerts.map((pipe) => (
-                <tr key={pipe.pipe_id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                  <td className="p-3 font-mono font-bold text-blue-600 dark:text-cyan-300">{pipe.pipe_id}</td>
+                <tr key={pipe.pipe_id || pipe.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                  <td className="p-3 font-mono font-bold text-blue-600 dark:text-cyan-300">{pipe.pipe_id || pipe.id}</td>
                   <td className="p-3">{pipe.location}</td>
                   <td className="p-3 font-semibold">{pipe.zone}</td>
-                  <td className="p-3 font-mono">{pipe.pressure_bar} bar</td>
+                  <td className="p-3 font-mono">{(pipe.pressure_bar ?? pipe.pressureBar)?.toFixed(1)} bar</td>
                   <td className="p-3">
                     <span
                       className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-black ${
-                        pipe.risk_level === "Critical"
+                        pipe.risk_level === "Critical" || pipe.riskLevel === "critical"
                           ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200"
                           : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200"
                       }`}
                     >
-                      {pipe.risk_level} ({pipe.risk_score})
+                      {pipe.risk_level || pipe.riskLevel} ({pipe.risk_score || pipe.riskScore})
                     </span>
                   </td>
-                  <td className="p-3 font-semibold">{pipe.operational_status}</td>
+                  <td className="p-3 font-semibold">{pipe.operational_status || pipe.operationalStatus}</td>
                 </tr>
               ))}
             </tbody>
@@ -462,7 +556,7 @@ export default function DashboardPage() {
 
       {/* Mandatory Disclaimer Footer Box */}
       <div className="rounded-xl border border-blue-200 bg-blue-50/80 px-4 py-3 text-xs text-blue-950 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-200">
-        <strong>Responsible Use Warning:</strong> PipeGuard AI is a research and educational prototype. It does not confirm physical pipeline leakage, structural damage, corrosion, or remaining asset life. Alerts require verification by qualified technicians using approved inspection methods.
+        <strong>Responsible Use Warning:</strong> PipeGuard AI is a research and educational prototype using synthetic demonstration telemetry data. It does not confirm physical pipeline leakage, structural damage, corrosion, or remaining asset life. Alerts require verification by qualified technicians using approved inspection methods.
       </div>
     </div>
   );

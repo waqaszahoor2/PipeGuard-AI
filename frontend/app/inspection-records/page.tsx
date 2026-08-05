@@ -17,7 +17,7 @@ import {
   X
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { SAMPLE_PIPELINES } from "@/lib/pipesData";
+import { usePipelineData } from "@/providers/PipelineDataProvider";
 
 export interface InspectionRecord {
   id: string;
@@ -44,7 +44,7 @@ const INITIAL_RECORDS: InspectionRecord[] = [
   {
     id: "INS-2026-001",
     pipe_id: "PIPE-CAL-1001",
-    location: "14th St & 8th Ave SW, Calgary",
+    location: "14th St & 8th Ave SW, Calgary Downtown",
     zone: "DOWNTOWN",
     technician_name: "Tech #402 (M. Vance)",
     inspection_date: "2026-07-28",
@@ -67,6 +67,54 @@ const INITIAL_RECORDS: InspectionRecord[] = [
   },
   {
     id: "INS-2026-003",
+    pipe_id: "PIPE-CAL-1016",
+    location: "Crowchild Trail & 24th Ave NW, Calgary",
+    zone: "NOSE HILL",
+    technician_name: "Tech #304 (D. Ross)",
+    inspection_date: "2026-08-01",
+    status: "Submitted",
+    findings: "Severe pressure drop (1.8 bar below baseline) with high frequency hydro-acoustic noise.",
+    evidence_summary: "Hydro-phone telemetry log export #8841.",
+    admin_notes: "Under technical review by Municipal Water Engineer."
+  },
+  {
+    id: "INS-2026-004",
+    pipe_id: "PIPE-CAL-1019",
+    location: "5th Ave SW & 2nd St SW, Calgary Downtown",
+    zone: "DOWNTOWN",
+    technician_name: "Tech #402 (M. Vance)",
+    inspection_date: "2026-08-02",
+    status: "Confirmed Issue",
+    findings: "Cast iron corrosion pit measuring 45mm diameter with active micro-seepage.",
+    evidence_summary: "CCTV inspection log & ground conductivity measurement.",
+    admin_notes: "Clamping collar approved for temporary stabilization."
+  },
+  {
+    id: "INS-2026-005",
+    pipe_id: "PIPE-CAL-1029",
+    location: "Glenmore Trail & Elbow Dr SW, Calgary",
+    zone: "GLENMORE",
+    technician_name: "Tech #205 (J. Miller)",
+    inspection_date: "2026-08-03",
+    status: "Repair Scheduled",
+    findings: "Joint displacement caused by frost heave; structural integrity rating degraded to 25%.",
+    evidence_summary: "Laser profiling scan & ground radar survey.",
+    admin_notes: "Excavation permit pending city approval."
+  },
+  {
+    id: "INS-2026-006",
+    pipe_id: "PIPE-CAL-1035",
+    location: "16th Ave NE & 36th St NE, Calgary",
+    zone: "NORTH HILL",
+    technician_name: "Tech #118 (S. Chen)",
+    inspection_date: "2026-08-04",
+    status: "Confirmed Issue",
+    findings: "Severe wall thinning due to internal tuberculation and localized pressure drop.",
+    evidence_summary: "Ultrasonic thickness measurement & water sample chemical assay.",
+    admin_notes: "Work order created for pipe relining."
+  },
+  {
+    id: "INS-2026-007",
     pipe_id: "PIPE-CAL-1003",
     location: "Macleod Trail & 58th Ave SE, Calgary",
     zone: "GLENMORE",
@@ -78,7 +126,7 @@ const INITIAL_RECORDS: InspectionRecord[] = [
     admin_notes: ""
   },
   {
-    id: "INS-2026-004",
+    id: "INS-2026-008",
     pipe_id: "PIPE-CAL-1002",
     location: "Bow Trail & Crowchild Trail SW, Calgary",
     zone: "BROADCAST HILL",
@@ -92,6 +140,7 @@ const INITIAL_RECORDS: InspectionRecord[] = [
 ];
 
 export default function InspectionRecordsPage() {
+  const { records: loadedPipes } = usePipelineData();
   const [roleMode, setRoleMode] = useState<"Public" | "Technician" | "Admin">("Public");
   const [records, setRecords] = useState<InspectionRecord[]>(INITIAL_RECORDS);
   const [statusFilter, setStatusFilter] = useState("");
@@ -99,11 +148,13 @@ export default function InspectionRecordsPage() {
   
   // New Record Form State (Technician Mode)
   const [showForm, setShowForm] = useState(false);
-  const [newPipeId, setNewPipeId] = useState(SAMPLE_PIPELINES[0]?.pipe_id ?? "");
+  const [newPipeId, setNewPipeId] = useState(loadedPipes[0]?.pipe_id || loadedPipes[0]?.id || "PIPE-CAL-1001");
   const [newTechName, setNewTechName] = useState("Technician #304");
   const [newStatus, setNewStatus] = useState<InspectionRecord["status"]>("Submitted");
   const [newFindings, setNewFindings] = useState("");
   const [newEvidence, setNewEvidence] = useState("");
+
+  const activePipesList = loadedPipes.length > 0 ? loadedPipes : [];
 
   const zones = useMemo(() => Array.from(new Set(records.map((r) => r.zone))).sort(), [records]);
 
@@ -117,12 +168,12 @@ export default function InspectionRecordsPage() {
 
   const handleCreateRecord = (e: React.FormEvent) => {
     e.preventDefault();
-    const targetPipe = SAMPLE_PIPELINES.find((p) => p.pipe_id === newPipeId);
+    const targetPipe = activePipesList.find((p) => p.pipe_id === newPipeId || p.id === newPipeId);
     
     const record: InspectionRecord = {
       id: `INS-2026-${String(records.length + 1).padStart(3, "0")}`,
       pipe_id: newPipeId,
-      location: targetPipe?.location ?? "Unknown Location",
+      location: targetPipe?.location ?? "Calgary Network Location",
       zone: targetPipe?.zone ?? "DOWNTOWN",
       technician_name: newTechName,
       inspection_date: new Date().toISOString().split("T")[0],
@@ -291,11 +342,14 @@ export default function InspectionRecordsPage() {
             <div>
               <label className="label">Target Pipeline ID</label>
               <select className="input" value={newPipeId} onChange={(e) => setNewPipeId(e.target.value)}>
-                {SAMPLE_PIPELINES.map((p) => (
-                  <option key={p.pipe_id} value={p.pipe_id}>
-                    {p.pipe_id} - {p.zone} ({p.location})
-                  </option>
-                ))}
+                {activePipesList.map((p) => {
+                  const id = p.pipe_id || p.id;
+                  return (
+                    <option key={id} value={id}>
+                      {id} - {p.zone} ({p.location})
+                    </option>
+                  );
+                })}
               </select>
             </div>
 

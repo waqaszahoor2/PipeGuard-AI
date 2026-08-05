@@ -15,6 +15,8 @@ import {
   Zap
 } from "lucide-react";
 import { useState } from "react";
+import { usePipelineData } from "@/providers/PipelineDataProvider";
+import type { PipelineAsset } from "@/lib/pipeline-data";
 
 interface EvaluationResult {
   riskScore: number;
@@ -25,7 +27,10 @@ interface EvaluationResult {
 }
 
 export default function LeakDetectionPage() {
+  const { records } = usePipelineData();
+
   // Input fields
+  const [selectedAssetId, setSelectedAssetId] = useState<string>("");
   const [pressure, setPressure] = useState<number>(4.2);
   const [flowRate, setFlowRate] = useState<number>(180);
   const [temperature, setTemperature] = useState<number>(11.5);
@@ -39,8 +44,27 @@ export default function LeakDetectionPage() {
   const [result, setResult] = useState<EvaluationResult | null>(null);
   const [evaluating, setEvaluating] = useState<boolean>(false);
 
+  // Asset Selector Handler
+  const handleSelectAsset = (assetId: string) => {
+    setSelectedAssetId(assetId);
+    if (!assetId) return;
+    const p = records.find((r) => r.pipe_id === assetId || r.id === assetId);
+    if (p) {
+      setPressure(p.pressure_bar ?? p.pressureBar ?? 4.5);
+      setFlowRate(p.flow_rate_lps ?? p.flowRate ?? 200);
+      setTemperature(p.temperature_c ?? p.temperatureC ?? 10.5);
+      setPipeAge(p.pipe_age ?? p.age ?? 25);
+      setDiameter(p.diameter_mm ?? p.diameterMm ?? 300);
+      const score = p.risk_score ?? p.riskScore ?? 0;
+      setPressureDrop(p.recentPressureDropBar ?? (score > 70 ? 1.5 : 0.2));
+      setFlowVariation(p.recentFlowVariationLs ?? (score > 70 ? 35.0 : 5.0));
+      setResult(null);
+    }
+  };
+
   // Preset Handlers
   const setPresetNormal = () => {
+    setSelectedAssetId("");
     setPressure(4.8);
     setFlowRate(210);
     setTemperature(10.5);
@@ -54,6 +78,7 @@ export default function LeakDetectionPage() {
   };
 
   const setPresetMinorAnomaly = () => {
+    setSelectedAssetId("");
     setPressure(3.9);
     setFlowRate(235);
     setTemperature(11.8);
@@ -67,6 +92,7 @@ export default function LeakDetectionPage() {
   };
 
   const setPresetMajorAnomaly = () => {
+    setSelectedAssetId("");
     setPressure(2.6);
     setFlowRate(340);
     setTemperature(13.2);
@@ -80,6 +106,7 @@ export default function LeakDetectionPage() {
   };
 
   const setPresetAgedCastIron = () => {
+    setSelectedAssetId("");
     setPressure(3.1);
     setFlowRate(190);
     setTemperature(12.5);
@@ -167,7 +194,7 @@ export default function LeakDetectionPage() {
       });
 
       setEvaluating(false);
-    }, 400);
+    }, 300);
   };
 
   const downloadReport = () => {
@@ -178,6 +205,7 @@ Generated: ${new Date().toLocaleString()}
 RESEARCH PROTOTYPE EVALUATION SUMMARY
 
 INPUT TELEMETRY METRICS:
+- Selected Asset: ${selectedAssetId || "Custom Parameters"}
 - Zone: ${zone}
 - Material: ${material}
 - Pipe Age: ${pipeAge} years
@@ -243,11 +271,36 @@ All physical actions require technician verification.
         <span className="badge-demo">HEURISTIC EVALUATOR</span>
       </div>
 
-      {/* Preset Quick Buttons */}
-      <section className="card p-4">
+      {/* Load Monitored Asset Selector & Preset Buttons */}
+      <section className="card p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs font-extrabold text-slate-700 dark:text-slate-300">
+            <span>Load Telemetry From Monitored Asset:</span>
+          </div>
+
+          <div className="w-full sm:w-auto">
+            <select
+              className="input py-1.5 text-xs font-mono font-bold"
+              value={selectedAssetId}
+              onChange={(e) => handleSelectAsset(e.target.value)}
+              aria-label="Load telemetry from asset"
+            >
+              <option value="">-- Select Monitored Pipeline Asset ({records.length}) --</option>
+              {records.map((r) => {
+                const id = r.pipe_id || r.id;
+                return (
+                  <option key={id} value={id}>
+                    {id} - {r.zone} ({r.material}, {r.risk_level || r.riskLevel} Risk)
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200 dark:border-slate-700">
           <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">
-            Quick Scenario Presets:
+            Or Choose Scenario Preset:
           </span>
           <div className="flex flex-wrap gap-2">
             <button
@@ -510,7 +563,7 @@ All physical actions require technician verification.
                 <Droplets className="mx-auto h-12 w-12 opacity-30" />
                 <p className="mt-3 text-sm font-bold">No evaluation computed yet.</p>
                 <p className="mt-1 text-xs">
-                  Fill in the telemetry parameters or select a scenario preset above, then click &quot;Calculate Risk Score&quot;.
+                  Select a monitored asset above or fill in parameters, then click &quot;Calculate Risk Score&quot;.
                 </p>
               </div>
             )}

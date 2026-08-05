@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { PipelineAsset } from "@/lib/pipesData";
+import type { PipelineAsset } from "@/lib/pipeline-data";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 

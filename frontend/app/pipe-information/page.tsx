@@ -1,97 +1,49 @@
 "use client";
 
 import { Download, RefreshCw, Search, SlidersHorizontal, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { SAMPLE_PIPELINES, type PipelineAsset } from "@/lib/pipesData";
+import { useMemo, useState } from "react";
+import { usePipelineData } from "@/providers/PipelineDataProvider";
+import type { PipelineAsset } from "@/lib/pipeline-data";
 
 export default function PipeInformationPage() {
-  const [records, setRecords] = useState<PipelineAsset[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Search and Filter states
-  const [query, setQuery] = useState("");
-  const [selectedZone, setSelectedZone] = useState("");
-  const [selectedMaterial, setSelectedMaterial] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [selectedRisk, setSelectedRisk] = useState("");
-  
-  // Selection and Pagination
+  const {
+    records,
+    filteredRecords,
+    loading,
+    error,
+    reload,
+    searchQuery,
+    setSearchQuery,
+    zoneFilter,
+    setZoneFilter,
+    materialFilter,
+    setMaterialFilter,
+    riskFilter,
+    setRiskFilter,
+    statusFilter,
+    setStatusFilter,
+    inspectionFilter,
+    setInspectionFilter,
+    resetFilters
+  } = usePipelineData();
+
   const [selectedPipe, setSelectedPipe] = useState<PipelineAsset | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  async function loadData() {
-    setLoading(true);
-    setError(null);
-    try {
-      // 1. Try primary source /data/pipelines.json
-      let res = await fetch("/data/pipelines.json");
-      if (!res.ok) {
-        // 2. Fallback to /calgary_pipe_sample.json
-        res = await fetch("/calgary_pipe_sample.json");
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json: PipelineAsset[] = await res.json();
-      if (Array.isArray(json) && json.length > 0) {
-        setRecords(json);
-        setSelectedPipe(json[0] ?? null);
-      } else {
-        // 3. Fallback to bundled TypeScript dataset
-        setRecords(SAMPLE_PIPELINES);
-        setSelectedPipe(SAMPLE_PIPELINES[0] ?? null);
-      }
-    } catch {
-      // Reliable local fallback ensures app NEVER fails even if network/JSON is blocked
-      setRecords(SAMPLE_PIPELINES);
-      setSelectedPipe(SAMPLE_PIPELINES[0] ?? null);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  const activeSelectedPipe = selectedPipe || filteredRecords[0] || records[0] || null;
 
   const zones = useMemo(() => Array.from(new Set(records.map((r) => r.zone))).sort(), [records]);
   const materials = useMemo(() => Array.from(new Set(records.map((r) => r.material))).sort(), [records]);
-  const statuses = useMemo(() => Array.from(new Set(records.map((r) => r.operational_status))).sort(), [records]);
+  const statuses = useMemo(() => Array.from(new Set(records.map((r) => r.operational_status || r.operationalStatus))).sort(), [records]);
+  const inspections = useMemo(() => Array.from(new Set(records.map((r) => r.inspection_status || r.inspectionStatus))).sort(), [records]);
   const riskLevels = ["Low", "Medium", "High", "Critical"];
-
-  const filteredRecords = useMemo(() => {
-    return records.filter((r) => {
-      const q = query.toLowerCase();
-      const matchesSearch =
-        !q ||
-        r.pipe_id.toLowerCase().includes(q) ||
-        r.location.toLowerCase().includes(q) ||
-        r.zone.toLowerCase().includes(q) ||
-        r.material.toLowerCase().includes(q);
-
-      const matchesZone = !selectedZone || r.zone === selectedZone;
-      const matchesMaterial = !selectedMaterial || r.material === selectedMaterial;
-      const matchesStatus = !selectedStatus || r.operational_status === selectedStatus;
-      const matchesRisk = !selectedRisk || r.risk_level === selectedRisk;
-
-      return matchesSearch && matchesZone && matchesMaterial && matchesStatus && matchesRisk;
-    });
-  }, [records, query, selectedZone, selectedMaterial, selectedStatus, selectedRisk]);
 
   const totalPages = Math.ceil(filteredRecords.length / itemsPerPage) || 1;
   const paginatedRecords = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredRecords.slice(start, start + itemsPerPage);
   }, [filteredRecords, currentPage]);
-
-  const handleResetFilters = () => {
-    setQuery("");
-    setSelectedZone("");
-    setSelectedMaterial("");
-    setSelectedStatus("");
-    setSelectedRisk("");
-    setCurrentPage(1);
-  };
 
   const exportCSV = () => {
     if (filteredRecords.length === 0) return;
@@ -118,28 +70,29 @@ export default function PipeInformationPage() {
     ];
 
     const rows = filteredRecords.map((r) => [
-      `"${r.pipe_id}"`,
+      `"${r.pipe_id || r.id}"`,
       `"${r.location}"`,
       `"${r.zone}"`,
       r.latitude,
       r.longitude,
-      r.installation_year,
-      r.pipe_age,
+      r.installation_year || r.installationYear,
+      r.pipe_age || r.age,
       `"${r.material}"`,
-      r.diameter_mm,
-      r.length_m,
-      r.max_capacity_lps,
-      r.pressure_bar,
-      r.flow_rate_lps,
-      r.temperature_c,
-      `"${r.operational_status}"`,
-      `"${r.inspection_status}"`,
-      r.risk_score,
-      `"${r.risk_level}"`,
-      `"${r.last_inspection_date}"`
+      r.diameter_mm || r.diameterMm,
+      r.length_m || r.lengthM,
+      r.max_capacity_lps || r.capacity,
+      r.pressure_bar || r.pressureBar,
+      r.flow_rate_lps || r.flowRate,
+      r.temperature_c || r.temperatureC,
+      `"${r.operational_status || r.operationalStatus}"`,
+      `"${r.inspection_status || r.inspectionStatus}"`,
+      r.risk_score || r.riskScore,
+      `"${r.risk_level || r.riskLevel}"`,
+      `"${r.last_inspection_date || r.lastInspectionDate}"`
     ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const csvContent =
+      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -170,7 +123,7 @@ export default function PipeInformationPage() {
           >
             <Download className="h-4 w-4" /> Download CSV ({filteredRecords.length})
           </button>
-          <span className="badge-demo">50 DEMO ASSETS</span>
+          <span className="badge-demo">{records.length} DEMO ASSETS</span>
         </div>
       </div>
 
@@ -185,9 +138,9 @@ export default function PipeInformationPage() {
           <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
             <SlidersHorizontal className="h-4 w-4 text-blue-600 dark:text-cyan-300" /> Filter Asset Records
           </div>
-          {(query || selectedZone || selectedMaterial || selectedStatus || selectedRisk) && (
+          {(searchQuery || zoneFilter || materialFilter || statusFilter || riskFilter || inspectionFilter) && (
             <button
-              onClick={handleResetFilters}
+              onClick={resetFilters}
               className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline dark:text-cyan-300"
             >
               <X className="h-3.5 w-3.5" /> Clear Filters
@@ -195,16 +148,16 @@ export default function PipeInformationPage() {
           )}
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
           <div className="relative sm:col-span-2 lg:col-span-1">
             <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
             <input
               type="text"
               className="input pl-9"
               placeholder="Pipe ID, location..."
-              value={query}
+              value={searchQuery}
               onChange={(e) => {
-                setQuery(e.target.value);
+                setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
             />
@@ -212,9 +165,9 @@ export default function PipeInformationPage() {
 
           <select
             className="input"
-            value={selectedZone}
+            value={zoneFilter}
             onChange={(e) => {
-              setSelectedZone(e.target.value);
+              setZoneFilter(e.target.value);
               setCurrentPage(1);
             }}
             aria-label="Filter by zone"
@@ -229,9 +182,9 @@ export default function PipeInformationPage() {
 
           <select
             className="input"
-            value={selectedMaterial}
+            value={materialFilter}
             onChange={(e) => {
-              setSelectedMaterial(e.target.value);
+              setMaterialFilter(e.target.value);
               setCurrentPage(1);
             }}
             aria-label="Filter by material"
@@ -246,14 +199,14 @@ export default function PipeInformationPage() {
 
           <select
             className="input"
-            value={selectedStatus}
+            value={statusFilter}
             onChange={(e) => {
-              setSelectedStatus(e.target.value);
+              setStatusFilter(e.target.value);
               setCurrentPage(1);
             }}
             aria-label="Filter by operational status"
           >
-            <option value="">All Operational Statuses</option>
+            <option value="">All Statuses</option>
             {statuses.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -263,9 +216,26 @@ export default function PipeInformationPage() {
 
           <select
             className="input"
-            value={selectedRisk}
+            value={inspectionFilter}
             onChange={(e) => {
-              setSelectedRisk(e.target.value);
+              setInspectionFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            aria-label="Filter by inspection status"
+          >
+            <option value="">All Inspections</option>
+            {inspections.map((i) => (
+              <option key={i} value={i}>
+                {i}
+              </option>
+            ))}
+          </select>
+
+          <select
+            className="input"
+            value={riskFilter}
+            onChange={(e) => {
+              setRiskFilter(e.target.value);
               setCurrentPage(1);
             }}
             aria-label="Filter by risk level"
@@ -286,11 +256,11 @@ export default function PipeInformationPage() {
           <RefreshCw className="mx-auto h-8 w-8 animate-spin text-blue-600 dark:text-cyan-300" />
           <p className="mt-4 text-sm font-bold text-slate-600 dark:text-slate-400">Loading Pipeline Directory…</p>
         </div>
-      ) : error ? (
+      ) : error && records.length === 0 ? (
         <div className="card p-8 text-center border-rose-300 dark:border-rose-900">
           <p className="text-sm font-bold text-rose-600 dark:text-rose-400">{error}</p>
           <button
-            onClick={loadData}
+            onClick={reload}
             className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white"
           >
             <RefreshCw className="h-3.5 w-3.5" /> Retry Loading
@@ -312,7 +282,7 @@ export default function PipeInformationPage() {
                   No pipeline records matched your selected criteria.
                 </p>
                 <button
-                  onClick={handleResetFilters}
+                  onClick={resetFilters}
                   className="mt-3 text-xs font-bold text-blue-600 hover:underline dark:text-cyan-300"
                 >
                   Reset all filters
@@ -335,40 +305,43 @@ export default function PipeInformationPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-700/60">
                       {paginatedRecords.map((row) => {
-                        const isSelected = selectedPipe?.pipe_id === row.pipe_id;
+                        const id = row.pipe_id || row.id;
+                        const isSelected = activeSelectedPipe?.pipe_id === id || activeSelectedPipe?.id === id;
+                        const rLevel = row.risk_level || row.riskLevel;
+                        const rScore = row.risk_score || row.riskScore;
                         return (
                           <tr
-                            key={row.pipe_id}
+                            key={id}
                             onClick={() => setSelectedPipe(row)}
                             className={`cursor-pointer transition hover:bg-blue-50/70 dark:hover:bg-blue-950/30 ${
                               isSelected ? "bg-blue-50 font-bold dark:bg-blue-950/50" : ""
                             }`}
                           >
                             <td className="p-3 font-mono font-bold text-blue-600 dark:text-cyan-300">
-                              {row.pipe_id}
+                              {id}
                             </td>
                             <td className="p-3 font-semibold">{row.zone}</td>
                             <td className="p-3">{row.material}</td>
                             <td className="p-3">
-                              {row.installation_year} ({row.pipe_age}y)
+                              {row.installation_year || row.installationYear} ({row.pipe_age || row.age}y)
                             </td>
-                            <td className="p-3 font-mono">{row.pressure_bar} bar</td>
+                            <td className="p-3 font-mono">{(row.pressure_bar || row.pressureBar)?.toFixed(1)} bar</td>
                             <td className="p-3">
                               <span
                                 className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-black ${
-                                  row.risk_level === "Critical"
+                                  rLevel === "Critical"
                                     ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200"
-                                    : row.risk_level === "High"
+                                    : rLevel === "High"
                                     ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200"
-                                    : row.risk_level === "Medium"
+                                    : rLevel === "Medium"
                                     ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200"
                                     : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
                                 }`}
                               >
-                                {row.risk_level} ({row.risk_score})
+                                {rLevel} ({rScore})
                               </span>
                             </td>
-                            <td className="p-3 text-[11px] font-semibold">{row.operational_status}</td>
+                            <td className="p-3 text-[11px] font-semibold">{row.operational_status || row.operationalStatus}</td>
                           </tr>
                         );
                       })}
@@ -403,77 +376,77 @@ export default function PipeInformationPage() {
           {/* Details Drawer / Inspector Panel */}
           <aside className="card p-5">
             <h3 className="text-lg font-black text-slate-900 dark:text-white">Pipeline Detail Inspector</h3>
-            {selectedPipe ? (
+            {activeSelectedPipe ? (
               <div className="mt-4 space-y-4">
                 <div className="rounded-xl bg-slate-100 p-4 dark:bg-slate-800/80">
                   <div className="font-mono text-sm font-black text-blue-600 dark:text-cyan-300">
-                    {selectedPipe.pipe_id}
+                    {activeSelectedPipe.pipe_id || activeSelectedPipe.id}
                   </div>
                   <div className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    {selectedPipe.location}
+                    {activeSelectedPipe.location}
                   </div>
                 </div>
 
                 <dl className="grid gap-3 text-xs sm:grid-cols-2">
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Zone</dt>
-                    <dd className="mt-0.5 font-bold">{selectedPipe.zone}</dd>
+                    <dd className="mt-0.5 font-bold">{activeSelectedPipe.zone}</dd>
                   </div>
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Coordinates</dt>
                     <dd className="mt-0.5 font-mono font-bold">
-                      {selectedPipe.latitude.toFixed(4)}, {selectedPipe.longitude.toFixed(4)}
+                      {activeSelectedPipe.latitude.toFixed(4)}, {activeSelectedPipe.longitude.toFixed(4)}
                     </dd>
                   </div>
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Installation Year</dt>
                     <dd className="mt-0.5 font-bold">
-                      {selectedPipe.installation_year} ({selectedPipe.pipe_age} yrs old)
+                      {activeSelectedPipe.installation_year || activeSelectedPipe.installationYear} ({activeSelectedPipe.pipe_age || activeSelectedPipe.age} yrs old)
                     </dd>
                   </div>
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Material & Size</dt>
                     <dd className="mt-0.5 font-bold">
-                      {selectedPipe.material} ({selectedPipe.diameter_mm} mm)
+                      {activeSelectedPipe.material} ({activeSelectedPipe.diameter_mm || activeSelectedPipe.diameterMm} mm)
                     </dd>
                   </div>
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Segment Length</dt>
-                    <dd className="mt-0.5 font-bold">{selectedPipe.length_m} meters</dd>
+                    <dd className="mt-0.5 font-bold">{activeSelectedPipe.length_m || activeSelectedPipe.lengthM} meters</dd>
                   </div>
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Max Capacity</dt>
-                    <dd className="mt-0.5 font-bold">{selectedPipe.max_capacity_lps} L/s</dd>
+                    <dd className="mt-0.5 font-bold">{activeSelectedPipe.max_capacity_lps || activeSelectedPipe.capacity} L/s</dd>
                   </div>
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Current Pressure</dt>
                     <dd className="mt-0.5 font-mono font-bold text-blue-600 dark:text-cyan-300">
-                      {selectedPipe.pressure_bar} bar
+                      {(activeSelectedPipe.pressure_bar || activeSelectedPipe.pressureBar)?.toFixed(1)} bar
                     </dd>
                   </div>
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Current Flow Rate</dt>
                     <dd className="mt-0.5 font-mono font-bold text-cyan-600 dark:text-cyan-300">
-                      {selectedPipe.flow_rate_lps} L/s
+                      {(activeSelectedPipe.flow_rate_lps || activeSelectedPipe.flowRate)?.toFixed(1)} L/s
                     </dd>
                   </div>
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Fluid Temp</dt>
-                    <dd className="mt-0.5 font-mono font-bold">{selectedPipe.temperature_c} °C</dd>
+                    <dd className="mt-0.5 font-mono font-bold">{activeSelectedPipe.temperature_c || activeSelectedPipe.temperatureC} °C</dd>
                   </div>
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Operational Status</dt>
                     <dd className="mt-0.5 font-bold text-slate-800 dark:text-slate-200">
-                      {selectedPipe.operational_status}
+                      {activeSelectedPipe.operational_status || activeSelectedPipe.operationalStatus}
                     </dd>
                   </div>
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Inspection Status</dt>
-                    <dd className="mt-0.5 font-bold">{selectedPipe.inspection_status}</dd>
+                    <dd className="mt-0.5 font-bold">{activeSelectedPipe.inspection_status || activeSelectedPipe.inspectionStatus}</dd>
                   </div>
                   <div className="rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
                     <dt className="text-slate-500">Last Inspected</dt>
-                    <dd className="mt-0.5 font-bold">{selectedPipe.last_inspection_date}</dd>
+                    <dd className="mt-0.5 font-bold">{activeSelectedPipe.last_inspection_date || activeSelectedPipe.lastInspectionDate}</dd>
                   </div>
                 </dl>
 
@@ -481,21 +454,21 @@ export default function PipeInformationPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-500">Research Risk Index</span>
                     <span className="text-sm font-black text-slate-900 dark:text-white">
-                      {selectedPipe.risk_score} / 100 ({selectedPipe.risk_level})
+                      {activeSelectedPipe.risk_score || activeSelectedPipe.riskScore} / 100 ({activeSelectedPipe.risk_level || activeSelectedPipe.riskLevel})
                     </span>
                   </div>
                   <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        selectedPipe.risk_level === "Critical"
+                        activeSelectedPipe.risk_level === "Critical" || activeSelectedPipe.riskLevel === "critical"
                           ? "bg-rose-500"
-                          : selectedPipe.risk_level === "High"
+                          : activeSelectedPipe.risk_level === "High" || activeSelectedPipe.riskLevel === "high"
                           ? "bg-amber-500"
-                          : selectedPipe.risk_level === "Medium"
+                          : activeSelectedPipe.risk_level === "Medium" || activeSelectedPipe.riskLevel === "medium"
                           ? "bg-yellow-500"
                           : "bg-emerald-500"
                       }`}
-                      style={{ width: `${selectedPipe.risk_score}%` }}
+                      style={{ width: `${activeSelectedPipe.risk_score || activeSelectedPipe.riskScore}%` }}
                     />
                   </div>
                 </div>

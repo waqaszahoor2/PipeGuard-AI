@@ -15,11 +15,15 @@ import {
   Moon,
   Layers,
   Search,
+  ShieldCheck,
   Sun,
+  UserCheck,
+  Users,
   X
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Logo } from "./Logo";
+import { useDemoAuth, type DemoRole } from "@/providers/DemoAuthProvider";
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -78,6 +82,7 @@ function NavLink({
 export function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
+  const { role, setRole } = useDemoAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -152,6 +157,21 @@ export function Shell({ children }: { children: ReactNode }) {
             </button>
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-xl font-black tracking-tight sm:text-2xl">{current}</h1>
+            </div>
+
+            {/* Demo Role Switcher Selector */}
+            <div className="hidden md:flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-400">Demo Role:</span>
+              <select
+                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-extrabold text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                value={role}
+                onChange={(e) => setRole(e.target.value as DemoRole)}
+                aria-label="Demo Mode Role Switcher"
+              >
+                <option value="Public">Public Visitor</option>
+                <option value="Technician">Demo Technician (Tech #402)</option>
+                <option value="Admin">Demo Admin (Lead Engineer)</option>
+              </select>
             </div>
 
             <button
